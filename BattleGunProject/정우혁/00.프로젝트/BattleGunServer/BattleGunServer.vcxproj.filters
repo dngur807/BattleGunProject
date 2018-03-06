@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="99.Default">
+      <UniqueIdentifier>{a8eb6026-a4b5-403d-b5bd-cb33d284bc93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00.MainServer">
+      <UniqueIdentifier>{d59e461d-4448-46d1-ac83-861901ecbb99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98.Include">
+      <UniqueIdentifier>{6a0b9001-e333-4ab4-a121-7d791fc4c8fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01.Module">
+      <UniqueIdentifier>{7c9c32e6-436c-4011-ab2b-a7e769844dc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01.Module\00.IO">
+      <UniqueIdentifier>{30545cce-1634-4792-b8b6-534c10171c63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ETC">
+      <UniqueIdentifier>{d53933d5-013e-4709-b21d-e672f88a3100}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Default.h">
+      <Filter>99.Default</Filter>
+    </ClInclude>
+    <ClInclude Include="Include.h">
+      <Filter>98.Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Struct.h">
+      <Filter>98.Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Server.h">
+      <Filter>00.MainServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Constant.h">
+      <Filter>98.Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Define.h">
+      <Filter>98.Include</Filter>
+    </ClInclude>
+    <ClInclude Include="IO.h">
+      <Filter>01.Module\00.IO</Filter>
+    </ClInclude>
+    <ClInclude Include="참고.txt">
+      <Filter>ETC</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Server.cpp">
+      <Filter>00.MainServer</Filter>
+    </ClCompile>
+    <ClCompile Include="IO.cpp">
+      <Filter>01.Module\00.IO</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
