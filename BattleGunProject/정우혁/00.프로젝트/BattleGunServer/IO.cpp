@@ -24,14 +24,18 @@ int InitIO()
 {
 	WSADATA			wsa;
 	SOCKADDR_IN		addr;
+	HANDLE			hThread;
 	int				itv;
+
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		return -1;
 
 	//  클라이언트의 접속을 받기위한 리슨 소켓 생성
+	// 오버랩드 옵션을 사용하기 위해서 넌블로킹 모드 소켓
 	g_Server.sockListener = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 	if (g_Server.sockListener == INVALID_SOCKET)
 		return -1;
+
 	//리슨 포트와 바인딩
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY;
@@ -60,8 +64,342 @@ int InitIO()
 
 
 	// 최대 유저 수만큼의 구조체를 미리 만들어 놓는다.
+	g_Server.pClientBegin = new CLIENTCONTEXT[g_Server.iMaxUserNum];
+	if (g_Server.pClientBegin == NULL)
+		return -1;
+
+	// 해당 유저 정보 초기화
+	if (InitSocketContext(g_Server.iMaxUserNum) == -1)
+		return -1;
+
+	//클라이언트 접속 받는 쓰레드
+	hThread = (HANDLE)_beginthreadex(NULL, 0, AcceptProc, NULL, 0, (UINT*)&itv);
+	if (hThread == NULL)
+		return -1;
 
 
+	return 0;
+}
 
+int InitSocketContext(int maxUser)
+{
+	int itv;
+	DWORD	dwReceived;
+
+	LPCLIENTCONTEXT		lpClient = g_Server.pClientBegin;
+
+
+	// 소켓 컨텍스트 구조체 전체를 초기화합니다.
+	ZeroMemory(lpClient, sizeof(CLIENTCONTEXT) * maxUser);
+
+	for (int i = 0; i < maxUser; ++i)
+	{
+		// 유저 구조체 별로 인덱스를 부여합니다.
+		lpClient[i].iKey = i;
+		lpClient[i].eovSend.mode = SENDEOVTCP;
+		lpClient[i].eovRecv.mode = RECVEOVTCP;
+
+		// 버퍼 초기 상태 설정
+		lpClient[i].pRecvBegin = lpClient[i].pRecvEnd = lpClient[i].RecvRingBuf;
+		lpClient[i].pSendBegin = lpClient[i].pSendEnd = lpClient[i].SendRingBuf;
+
+
+		// 클라이언트와의 통신을 위한 소켓 생성
+		lpClient[i].sockClnt = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+		if (lpClient[i].sockClnt == INVALID_SOCKET)
+			return -1;
+
+
+		// AcceptEx는 미리 소켓을 생성하여 인자로 받고 접속이 완료되면 CompletionPort객체나
+		// 인벤트 또는 콜백 함수로 알려준다.
+		// 접속시 부하를 줄일 수 있다.
+
+		itv = AcceptEx(g_Server.sockListener, lpClient[i].sockClnt, lpClient[i].pRecvEnd
+			, MAXPACKETSIZE, sizeof(sockaddr_in) + 16, sizeof(sockaddr_in) + 16
+			, &dwReceived, (OVERLAPPED*)&lpClient[i].eovRecv);
+		if (itv == FALSE  &&  GetLastError() != ERROR_IO_PENDING)
+			return -1;
+
+		// SendBuffer를 위한 임계영역을 생성한다.
+		InitializeCriticalSection(&lpClient[i].CS);
+	}
+	return 0;
+}
+
+// 접속 허가 쓰레드 입니다.
+// 클라이언트와 반응하는 모든것을 작동할 수 있는 시작점입니다.
+UINT WINAPI AcceptProc(void* pParam)
+{
+	BOOL				IsResult;
+	DWORD				dwTransferred;
+	DWORD				CompletionKey;
+	sockaddr_in				*pLocal;
+	sockaddr_in				*pRemote;
+	int						localLen;
+	int						remoteLen;
+	LPCLIENTCONTEXT	lpClientContext;//확장된 오버랩 구조체
+
+
+	LPEOVERLAPPED	lpEov;//이벤트가 들어오는 곳
+	while (1)
+	{
+		// 리슨 소켓과 연결된 IOCP에 접속이 들어올 때까지 대기한다.
+		IsResult = GetQueuedCompletionStatus(g_Server.hIocpAcpt, &dwTransferred , (LPDWORD)&CompletionKey
+			, (LPOVERLAPPED*)&lpEov, INFINITE);
+
+		// dwTransferred는 전송된 바이트 수이다.
+		// 이것은 읽기에 의하여 발생한 것이라면 읽어들인 바이트 수를
+		// 쓰기에 의하여 발생한 것이라면 전송한 바이트의 수를 가리킨다.
+		// &dummy는 Completion key이다.
+
+		// CreateIOCompletionPort를 이용하여 소켓과 
+		// IOCP를 연결할 때 바로 이 Completion key 전달한다.
+		// 따라서 이것을 하나의 구분값으로서 사용 할 수 있다
+		
+		// 사실 이 Accept 쓰레드에서는 이 값이 무의미 하다. 전달될 값이 존재하지 않기 때문 입니다.
+		// 이 쓰레드에서의 이벤트라는 것은 서버의 리슨 소켓에 연결된 것이기 때문에
+		// 클라이언트와 연관이 없기 때문이다.
+		// 그러한 이유로 InitIo 부분에서 리슨 소켓과 IOCP를 연결할 때 0으로만 호출한 것이다.
+
+		// &lpEov는 오버랩 구조체의 포인터 형이다.
+		// 기것은 바로 입 , 출력에 사용되었던 오버랩 구조체의 주소를 넘겨주는 부분이다.
+		// 모든 것이 비동기로 작동하게 되므로 어떠한 작업이 일어날 때는 항상 오버랩 구조체를 사용하며
+		// 그에 따라 주소가 전달된다.
+
+
+		// AcceptEx는 클라이언트가 접속한 후에 첫 번째 데이터 블록이 전송되어야만 
+		// 서버에서 접속으로 인식한다.
+		// 중요한 것은 이렇게 첫 번째 블록이 넘어오는 것 또한 네트워크 전송이므로
+		// AcceptEx를 호출할 당시에도 오버랩 구조체를 사용한다는 것이다.
+		// 따라서 GetQueueCompletionStatus에서 얻는 것은 첫 번째 읽어들인 첫 번째 데이터 블록의 양 ,
+		// 두 번째 Completion key 언제나 0 (앞에서의 연결 과정에서 항상 0을 주었기 때문입니다.)
+		// 세 번째는 AcceptEx에 인자로 주었던 그 확장 오버랩 구조체의 주소입니다.
+		// 이 이벤트가 발생한 시점에서는 클라이언트와의 접속을 위하여
+		// 할당된 소켓과 또 그 확장된 소켓과 또 그 확장된 오버랩 구조체의 관계가
+		// 모두 하나의 유저 구조체안에 속하는 것들로 이루어진다.
+		// AcceptEx를 호출할 때 모두 같은 유저 구조체 안의 변수들로만 사용되었기 때문입니다.
+		// 이 점은 현재 접속한 클라이언트가 어떠한 유저 구조체를 할당받았는지를 알 수 있는 근거가 된다.
+
+		// 이벤트가 발생하여 GetQueuedCompletionStatus가 블록 해제된 시점에서 
+		// 접속한 클라이언트는 자기와 통신을 위한 하나의 소켓과 또한 확장된
+		// 오버랩 구조체를 이미 할당받은 시점이기 때문에 또한 그들이 같은 유저 구조체 안에 포함되어 있기 때문에 그 확장된
+		// 오버랩 구조체의 주소만을 알게 된다면 접속한 클라이언트가 어떠한 유저 구조체를 사용하는지를 알 수 있다.
+		// 따라서 lpsockContext = (LPSOCKETCONTEXT)lpEov;//와 같은 관계가 성립한다.
+
+
+		// 에러가 없을 경우
+		if (lpEov != NULL && dwTransferred != 0)
+		{
+			g_Server.iCurUserNum++;//유저 접속~
+			lpClientContext = (LPCLIENTCONTEXT)lpEov;// 이벤트가 발생한 소켓컨텍스트를 얻는다.
+			// AcceptEx에 넣는 확장된 오버랩 구조체는 첫 번째 블록을 받기 위한 것이므로  유저 구조체에서
+			// eovRecvTcp를 사용하게 되는데 이것이 바로 그 유저 구조체의 첫 번째 멤버이기 때문에
+			// 그것의 주소 값을 유저 구조체의 시작 값이라 볼 수 있다.
+
+
+			// 접속 받은 곳의 주소를 얻어서 저장
+			GetAcceptExSockaddrs(lpClientContext->pRecvEnd, MAXPACKETSIZE, sizeof(sockaddr_in) + 16
+				, sizeof(sockaddr_in) + 16, (sockaddr**)&pLocal, &localLen, (sockaddr**)&pRemote, &remoteLen);
+
+
+			CopyMemory(&lpClientContext->remoteAddr, pRemote, sizeof(sockaddr_in));
+
+			// 링버퍼 end pointer 설정
+			RecvTcpBufEnqueue(lpClientContext , dwTransferred);
+
+			// Accept 쓰레드에서의 일을 모두 마쳤기 때문에 Worker 쓰레드로 접속된
+			// 클라이언트의 유저 구조체에 할당된 소켓을 클라이언트와의
+			// 실제 통신용 IOCP와 연결시키는 작업을 합니다.
+			// 이 때는 유저에 대한 명확한 구조가 존재하고 있으므로 Completion key 값에 이 유저 구조체의 포인터를 넣을 수가 있다.
+			// 그렇게 함으로서 앞서 Accept 쓰레드에서처럼 형 변환 없이 바로바로 사용이 가능합니다.
+
+			CreateIoCompletionPort((HANDLE)lpClientContext->sockClnt, g_Server.hIocpWorkTcp, (DWORD)lpClientContext, 0);
+
+
+			// 바로 읽기에 대한 요청을 한다.
+			// 이것은 비동기 소켓이라는 부분에 아주 밀접한 부분입니다.
+			// 블록킹 소켓에서는 recv에서 어떠한 크기일지라도 반드시 읽은 후에 블록이 해제되는 반면에
+			// 비동기 소켓은 일단은 무조건 리턴을 하며 후에 어떠한 이벤트가 발생하였을 때 처리하는 방식입니다.
+			// 물론 여기에서는 앞에서와 같이 이미 IOCP와 유저 구조체의 소켓을 연결하였기 때문에
+			// 어떠한 읽기가 발생하면 worker 쓰레드 쪽의 GetQueueCompletionStatus가 풀리는 것이다.
+			PostTcpRecv(lpClientContext);
+
+
+			// 이 함수는 클라이언트로부터 날아온 데이터를 해석합니다.
+			// 함수의 이름 그대로 요청이 왔다는 것을 쌓는 함수로
+			// 그렇게 쌓인 큐와 그것의 처리가 프로세스라는 개념입니다.
+			GameBufEnqueueTcp(lpClientContext);
+		}
+
+	}
+	return 0;
+}
+
+void RecvTcpBufEnqueue(LPCLIENTCONTEXT lpSockContext, int iPacketSize)
+{
+	int iExtra;
+
+	// 전송 받은 패킷으로 인하여 받기 버퍼를 초과하는 지를 검사 (포인터의 뺄셈 (주소값 연산))
+	iExtra = lpSockContext->pRecvEnd + iPacketSize - lpSockContext->RecvRingBuf - RINGBUFSIZE;
+
+	if (iExtra >= 0)
+	{
+		// 받기 버퍼를 초과한다면 그 부분을 앞으로 이동
+		CopyMemory(lpSockContext->RecvRingBuf, lpSockContext->RecvRingBuf + RINGBUFSIZE, iExtra);
+		// 큐가 쌓일 위치 조정
+		lpSockContext->pRecvEnd = lpSockContext->RecvRingBuf + iExtra;
+	}
+	else
+	{
+		//큐가 쌓일 위치 조정
+		lpSockContext->pRecvEnd += iPacketSize;
+	}
+
+#ifdef _LOGLEVEL1_
+	printf( "RecvTcpBufEnqueue : %d, %d byte\n", lpSockContext->index, iPacketSize );
+#endif
+}
+
+/*
+버퍼 관리
+
+이 부분이 IO 계층에서 가장 중요한 부분을 차지하고 있는 곳이다.
+이 버퍼들은 요청된 데이터 또는 그것에 대한 응답으로 전송될 데이터들이 중간에
+거쳐가는 부분으로 이것의 관리 방법을 보고자 하는 단락입니다.
+
+복사의 최소화를 중점적으로 본다. 보통 전달받은 데이터들은 각 프로토콜별로 해당하는 양만큼을
+하나의 뭉치로서 처리합니다.
+
+가령 채널에 입장하기라는 프로토콜이 100바이트의 데이터라면 그것을 하나의 단위로 처리하는 것입니다.
+
+그러한 과정에서 보통 하나의 패킷을 버퍼에 복사하는 식으로 사용합니다.
+하지만 서버라는 것이 유저들의 요구에 해당하는 패킷을 적절하게 해석하는 것이 대부분이므로
+이런 식의 복사라는 과정은 많이 CPU시간을 사용하는 부분 중의 하나가 될 것입니다.
+이러한 이유로 여기서는 그것을 최대한으로 줄일 수 있는 방향을 찾아 보려 한 것입니다.
+
+유저로부터 전송된 데이터를 읽을 수 있도록 비동기 함수를 호출하는 부분입니다.
+*/
+
+void PostTcpRecv(LPCLIENTCONTEXT lpSockContext)
+{
+	WSABUF			wsaBuf;
+	DWORD			dwReceived, dwFlags;
+	int				iResult;
+
+	// WSARecv 함수를 위한 버퍼 설정
+	dwFlags = 0;
+	wsaBuf.buf = lpSockContext->pRecvEnd;// 링버퍼의 끝에서 부터 받는다.
+	wsaBuf.len = MAXPACKETSIZE;	// 이곳에서는 받아들일 수 있는 최대 사이즈를 MAXPACKETSIZE 로 합니다
+	// 또한 데이터를 받는 위치를 해당 받기 버퍼의 사용 가능한 끝(End)로 위치시키는 것입니다.
+	// 데이터를 받기에 해당하는 오버랩 구조체(eovRecv)나 버퍼에 대한 표시변수 등은 모두 각각의 유저들에게
+	// 있는 것을 사용함으로서 서로 독립적인 처리를 만들게 합니다.
+	// WSARecv가 비동기 함수이므로 제대로 된 상태에서 이 호출은 언제나 바로 넘어가며
+	// 데이터가 전송되어 왔을 경우에는 이벤트가 발생하는 것입니다.
+	// 그 경우에서 읽어들인 데이터는 해당 구조체의 recvEnd를 시작으로 하여 전달된 바이트 수만큼이 저장됩니다.
+	// 이렇게 한 후에 이 읽어들인 데이터에 대하여 버퍼를 정하는 부분이 RecvTcpBufEnqueue입니다.
+
+
+	iResult = WSARecv(lpSockContext->sockClnt, &wsaBuf, 1, &dwReceived, &dwFlags
+		, (OVERLAPPED*)&lpSockContext->eovRecv, NULL);
+
+	// PENDING을 제외한 나머지 에러
+	if (iResult == SOCKET_ERROR && WSAGetLastError() != ERROR_IO_PENDING)
+	{
+		// never comes
+		printf("***** PostTcpRecv error : %d, %d\n", lpSockContext->iKey, WSAGetLastError());
+	}
+
+
+}
+
+/*
+프로세스 객체의 요청
+
+이 함수는 각가의 유저로부터 전송받은 테이터를 이제 실제로 처리하도록 프로세스 객체에게 넘겨주는 과정을 처리하는 함수입니다. 
+그리하여 인자로는 유저 구조체의 포인터 단 하나만을 취하는 것입니다.
+
+각 유저로부터 전송받은 데이터는 WSARecv API를 통해 각각의 RecvRingBuf 에 쌓이게 된다.
+이렇게 받은 패킷이 제대로된 하나를 완성하였을 경우에는
+실제로 그것을 처리하도록 프로세스 객체의 큐에 요청한다.
+패킷이 완성되지 않았을 경우에는 아직 모두 전송받은 경우가 아니므로
+다음 번 데이터를 전송받을 때 처리를 요청하는 것입니다.
+*/
+
+/*
+Mark변수가 필요한 이유는 TCP에서의 패킷 단위 전송이 보장되지 않는다는데 있다.
+정확하게는 하나의 패킷이 몇번에 걸쳐서 나뉘어 전송된다는 것이 그 이유입니다.
+패킷 처리가 불가능해진 경우에는 다음 번 전송이 발생하였을 때로 순서를 넘겨야 합니다.
+바로 이 부분에 mark가 사용됩니다.
+
+가장 최초에는 mark와 begin이 같은 값으로 시작된다.
+이 때 데이터를 위에서 말한 것처럼 전송받았다고 하면 , 일단 정상적인 두 개의 패킷이 있으므로
+이것을 프로세스 객체에 처리하도록 큐에 넣을 것입니다.
+
+이 두 패킷을 큐에 넣으면서 세 번째 패킷의 시작부를 바로 mark의 값으로 만들게 된다.
+데이터를 전송받았으나 프로세스 객체에 요청되지 못한 새로운 패킷의 시작부가 바로
+mark에 의하여 그 위치를 표시합니다.
+
+두 상황이 나타납니다.
+
+하나는 아직 덜 완성된 패킷에 대한 전송을 받는 것이며
+또 다른 하나는 프로세스 객체에 처리시킨 두 개의 패킷이 처리된다.
+*/
+void GameBufEnqueueTcp(LPCLIENTCONTEXT lpSockContext)
+{
+	short			iBodySize;
+	int				iRestSize, iExtra;
+
+	// 이전에 표시된 위치와 전송받은 데이터와의 실제 크기를 구함
+	// 이 차이는 이 두개의 위치가 역전될 수도 있으므로(링버퍼 이므로)
+	// 음수일 경우에는 RINGBUFSIZE를 더해줍니다.
+	// 이 거리라는 것이 현재 그 유저가 가지고 있는 처리되어야 할 데이터의 양입니다.
+	// 그 양이 헤더의 크기보다 작다면 처리할 것이 없다는 것을 말한다.
+
+	iRestSize = lpSockContext->pRecvEnd - lpSockContext->pRecvMark;
+	if (iRestSize < 0)
+		iRestSize += RINGBUFSIZE;
+	// 패킷이 헤더크기 만큼도 전송되지 안항ㅆ음
+	if (iRestSize < HEADERSIZE)
+		return;
+
+
+	// 만약 데이터를 한번 전송받았을 떄 여러 개의 패킷이 동시에 들어온 것일 수 있으니
+	// while문을 이용해서 무한 루프합니다.
+	// 이제 제대로 완성된 하나의 패킷을 찾기 위해서 검사하는 과정을 행하는 것입니다.
+	// RecvMark로 부터 2바이트의 바디를 얻는 부분이 나온다.
+	// 만약 그것을 얻는데 있어서 링 버퍼가 회기한다면 가장 앞쪽에서 가져옵니다.
+	// 그런 후에 그 패킷이 타당하다면 Mark를 그곳으로 옭겨 주면서
+	// 동시에 프로세스의 큐에 등록합니다.
+
+	while (1)
+	{
+		// 표시된 위치와 받기 버퍼의 끝과의 차이 구함
+		iExtra = lpSockContext->RecvRingBuf + RINGBUFSIZE - lpSockContext->pRecvMark;
+
+		// 차이가 바디의 크기를 나타내는 헤더보다 작음
+		if (iExtra < sizeof(short))
+		{
+			// 앞쪽에서 1바이트를 가져옴
+			*(lpSockContext->RecvRingBuf + RINGBUFSIZE) = *lpSockContext->RecvRingBuf;
+
+		}
+		// 바디 크기를 얻음
+		CopyMemory(&iBodySize, lpSockContext->pRecvMark, sizeof(short));
+
+		// 패킷이 실제 크기만큼 전송되지 안항ㅆ음
+		if (iRestSize < iBodySize + HEADERSIZE)
+			return;
+
+		// 표시를 다음번 패킷 위치로 옮김
+		lpSockContext->pRecvMark += iBodySize + HEADERSIZE;
+
+		//표시가 회기하는 경우를 위한 재설정
+		if (lpSockContext->pRecvMark >= lpSockContext->RecvRingBuf + RINGBUFSIZE)
+			lpSockContext->pRecvMark -= RINGBUFSIZE;
+
+		// 검사해야 할 전체의 크기에서 지금 검사된 패킷에 대한 크기를 줄임
+
+		// 패킷 처리를 위해 프로세스 큐에 넣음
+	}
 }
 
