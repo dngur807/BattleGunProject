@@ -5,6 +5,8 @@
 #include <iostream>
 #include <stdio.h>
 #include <process.h>
+#include <map>
+#include <vector>
 
 using namespace std;
 

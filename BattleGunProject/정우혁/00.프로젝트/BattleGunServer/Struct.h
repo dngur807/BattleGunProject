@@ -1,13 +1,35 @@
 #pragma once
 #include "Default.h"
 #include "Define.h"
+#include "Enum.h"
+
+class CServerProcess;
 
 typedef struct
 {
 	OVERLAPPED				ovl; // hEvent멤버만 신경쓰면 된다.
 	int						mode; // IOCP는 IO 완료만 알려줄 뿐 입력인지 출력인지 알려주지않는다.
-
 }EOVERLAPPED, *LPEOVERLAPPED;		//확장된 오버랩 구조체
+
+
+typedef struct tagUserInfo
+{
+	TCHAR		szID[256];
+	eTeamType	eTeam;
+	int			iKill;
+	int			iDeath;
+	int			iGiveDamage;// 준 피해량
+	int			iGetDamage;	// 받은 피해량
+	int			iIndex;
+	tagUserInfo()
+	{
+		eTeam = TEAM_END;
+		iKill = 0;
+		iDeath = 0;
+		iGiveDamage = 0;
+		iGetDamage = 0;
+	}
+}USERINFO;
 
 // 클라이언트를 담당하는 유저 구조체이다.
 typedef struct
@@ -33,6 +55,14 @@ typedef struct
 	int				iKey;// 각각의 클라이언트가 가지고 있는 고유 인덱스
 
 
+
+	// 게임 프로세스
+	char		szID[IDLEN];
+	int			idLen;//아이디 길이
+
+	int			iProcess;		//현재 유저가 위치하고 있는 곳의 인덱스
+
+	USERINFO	tUserInfo;
 }CLIENTCONTEXT, *LPCLIENTCONTEXT;
 //서버 정보 구조체이다. 
 // 서버 프로그램 전체에서 사용하는 서버 정보를 위한 전역 구조체이다.
@@ -46,12 +76,18 @@ typedef struct
 	int						iCurUserNum;// 현재 유저 수
 
 	CLIENTCONTEXT*			pClientBegin;// 클라이언트 구조체들에 대한 시작 포인터 , 이것을 이용해서 전체 유저 탐색 가능
+	CServerProcess*			ps;//프로세스 시작점
 
+	int						iMaxProcess;
 	//게임 전용
 	CRITICAL_SECTION		 CS;
-
+	map<int, LPCLIENTCONTEXT>  m_mapAllUserList;
 
 }SERVERCONTEXT, *LPSERVERCONTEXT;
 
 
+typedef struct
+{
+	int(*proc)(LPCLIENTCONTEXT lpSockContext, char *cpPacket);
+}ONTRANSFUNC;
 

@@ -6,10 +6,12 @@
 
 SERVERCONTEXT			g_Server;
 
+
 int main()
 {
 	g_Server.iCurUserNum = 0;
 	g_Server.iMaxUserNum = MAXUSER;
+	g_Server.iMaxProcess = 4;
 
 	InitializeCriticalSection(&g_Server.CS);//임계영역 초기화
 
@@ -19,7 +21,11 @@ int main()
 	// 로비 초기화
 
 	// 인게임 초기화
-
+	while (1)
+	{
+		
+	}
 	return 0;
 
 }
+

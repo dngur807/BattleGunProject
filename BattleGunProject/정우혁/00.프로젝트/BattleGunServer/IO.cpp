@@ -1,6 +1,9 @@
 #include "Default.h"
 #include "IO.h"
 #include "Include.h"
+#include "ServerProcess.h"
+
+ONTRANSFUNC				g_OnTransFunc[MAXTRANSFUNC];
 
 /*
 여기서는 IOCP를 사용합니다. 입 / 출력 완료 포트라 부르는 IOCP는 읽거나 쓰기 중 
@@ -60,7 +63,7 @@ int InitIO()
 
 	// 리슨 소켓을 IocpAcpt에 연결합니다.
 	// 따라서 이벤트가 발생하면 바로 클라이언트가 접속한 때라는 것을 알 수 있습니다.
-	CreateIoCompletionPort((HANDLE)g_Server.sockListener, g_Server.hIocpAcpt, 0, 0);
+	CreateIoCompletionPort((HANDLE)g_Server.sockListener, g_Server.hIocpAcpt , 0, 0);
 
 
 	// 최대 유저 수만큼의 구조체를 미리 만들어 놓는다.
@@ -100,7 +103,7 @@ int InitSocketContext(int maxUser)
 		lpClient[i].eovRecv.mode = RECVEOVTCP;
 
 		// 버퍼 초기 상태 설정
-		lpClient[i].pRecvBegin = lpClient[i].pRecvEnd = lpClient[i].RecvRingBuf;
+		lpClient[i].pRecvMark  = lpClient[i].pRecvBegin = lpClient[i].pRecvEnd = lpClient[i].RecvRingBuf;
 		lpClient[i].pSendBegin = lpClient[i].pSendEnd = lpClient[i].SendRingBuf;
 
 
@@ -122,6 +125,10 @@ int InitSocketContext(int maxUser)
 
 		// SendBuffer를 위한 임계영역을 생성한다.
 		InitializeCriticalSection(&lpClient[i].CS);
+
+
+		// 기본 프로세스
+		lpClient[i].iProcess = DEFAULTPROCESS;//기본 프로세스
 	}
 	return 0;
 }
@@ -130,17 +137,17 @@ int InitSocketContext(int maxUser)
 // 클라이언트와 반응하는 모든것을 작동할 수 있는 시작점입니다.
 UINT WINAPI AcceptProc(void* pParam)
 {
-	BOOL				IsResult;
-	DWORD				dwTransferred;
-	DWORD				CompletionKey;
+	BOOL					IsResult;
+	DWORD					dwTransferred;
+	DWORD					CompletionKey;
 	sockaddr_in				*pLocal;
 	sockaddr_in				*pRemote;
 	int						localLen;
 	int						remoteLen;
-	LPCLIENTCONTEXT	lpClientContext;//확장된 오버랩 구조체
+	LPCLIENTCONTEXT			lpClientContext;//확장된 오버랩 구조체
 
 
-	LPEOVERLAPPED	lpEov;//이벤트가 들어오는 곳
+	LPEOVERLAPPED			lpEov;//이벤트가 들어오는 곳
 	while (1)
 	{
 		// 리슨 소켓과 연결된 IOCP에 접속이 들어올 때까지 대기한다.
@@ -240,7 +247,8 @@ void RecvTcpBufEnqueue(LPCLIENTCONTEXT lpSockContext, int iPacketSize)
 	int iExtra;
 
 	// 전송 받은 패킷으로 인하여 받기 버퍼를 초과하는 지를 검사 (포인터의 뺄셈 (주소값 연산))
-	iExtra = lpSockContext->pRecvEnd + iPacketSize - lpSockContext->RecvRingBuf - RINGBUFSIZE;
+	iExtra = lpSockContext -> pRecvEnd + iPacketSize - lpSockContext->RecvRingBuf - RINGBUFSIZE;
+
 
 	if (iExtra >= 0)
 	{
@@ -256,7 +264,84 @@ void RecvTcpBufEnqueue(LPCLIENTCONTEXT lpSockContext, int iPacketSize)
 	}
 
 #ifdef _LOGLEVEL1_
-	printf( "RecvTcpBufEnqueue : %d, %d byte\n", lpSockContext->index, iPacketSize );
+	printf( "RecvTcpBufEnqueue : %d, %d byte\n", lpSockContext->iKey, iPacketSize );
+#endif
+}
+
+/*
+큐에 있는 패킷을 꺼내주는 함수입니다.
+RecvTcpBufEnqueue함수가 전송된 데이터를 무조건 RingBuf 버퍼에 순서대로 쌓는 반면에
+이 함수는 한번의 호출로 완성된 하나의 패킷을 얻는 부분입니다.
+로직상 언제나 타당한 패킷만을 얻으므로 그것을 가지고서 처리를 할 수 있는 것이다.
+간단하게 하나씩의 데이터를 얻을 수 있는 이 함수에 대하여 그전에 설정된 중요한 가정을 확인한다.
+
+RecvRingBuf 버퍼는 충분히 크고 관리하는 데 있어서 Begin이 한바퀴를 돌아온 End에 의해 덮어 지지 않는다.
+
+이 두가지 가정은 여기서 사용한 방법으로 버퍼를 관리할 떄 아주 중요한 사항입니다.
+RingBuf라는 것은 유저로부터 전송된 데이터들이 저장되는 곳입니다. 전송된 데이터를 모두 처리하기 전에
+또 다른 데이터가 전송되어 올 수 있으므로 이 버퍼는 충분히 커야만 하는 것입니다.
+
+또한 두  번째 가정에 의해서도 버퍼가 충분히 커야 할 필요가 있는 것입니다.
+전송받은 데이터는 버퍼에서 사용가능한 끝을 나타내는 End 부분에 쌓이며 데이터를 꺼내갈 때는 Begin 부분에서 꺼낸다.
+
+
+중요한 것은 여기서 꺼낸다 라는 표현이 실제로는 가져간다는 것이 아니라는 것이다.
+중요한 의미로 여기서의 꺼내간다라는 것은 단순히 그 시작점의 포인터를 가져간다라는 것입니다.
+이 부분에서 한번의 복사를 줄이는 것이 가능해지는 것입니다.
+단순히 그 위치의 포인터만을 가져가게 됨으로써 실제 데이터는 RecvTcpRingBuf 에  있는 것을 고스란히 쓰게 되는 것입니다.
+그러한 이유로 미처 그 데이터가 처리되기 전에 다른 데이터가 덮어 씌워지는 경우를 위해 버퍼가 충분히 커야합니다.
+*/
+
+/*
+이 함수의 인자로는 해당 유저의 정보 구조체(lpsockcontext)와 하나의 패킷의 위치를 받을 이중 포인터(cpPacket)과 하나의 패킷의 크기를
+받을 정수형 포인터 이다. 뒷쪽의 두 개의 변수를 보면 앞에서 말한대로 이것들은 위치나 크기만을 받는 부분이라는 것을 느낄 것이다.
+
+패킷은 이것이 처리될 때까지 소멸되지 않는다는 가정을 하였으므로
+복사하는 과정없이 위치만 넘기는 것이 가능합니다.
+그 다음은 바디의 크기를 알기 위하여 그 크기를 나타내는 2바이트가 읽기 가능한지를 검사하는 부분입니다.
+이 2바이트 경계에서 링 버퍼가 회전할 수 있기 때문이다. 그렇게 한 후 2바이트의 바디 크기를 나타내는 값을 얻는다.
+그런 후에 이번에는 실제 바디에 해당하는 데이터를 얻기 위한 작업을 합니다.
+
+그것이 링 버퍼가 회전하는 위치에 있는가를 검사하여 , 링 버퍼의 가장 앞에서 특정 크기를 
+가장 뒤쪽으로 복사하는 과정을 진행한다. 그런 후에는 패킷을 읽기 위한 시작점을 사용한 수 만큼의 뒤로 옮기는 것입니다.
+*/
+
+void RecvTcpBufDequeue(LPCLIENTCONTEXT lpSockContext, char **cpPacket, int *iPacketSize)
+{
+	short iBodysize;
+	int	  iExtra;
+
+	*cpPacket = lpSockContext->pRecvBegin;
+	// 그 위치와 버퍼의 끝까지와의 차이를 구함(begin의 위치와 버퍼의 끝과의 차이를 구하는 것입니다.)
+	iExtra = lpSockContext->RecvRingBuf + RINGBUFSIZE - lpSockContext -> pRecvBegin;
+
+	// 만약 차이가 바디의 크기를 나타내는 헤더보다 작으면
+	if (iExtra < sizeof(short))
+	{
+		// 앞쪽에서 1바이트를 가져옴 ( 맨끝 포이터가 맨앞의 포인터를 가리키게 합니다.)
+		*(lpSockContext->RecvRingBuf + RINGBUFSIZE) = *lpSockContext->RecvRingBuf;
+	}
+	// 바디의 크기를 얻는다.
+	CopyMemory(&iBodysize, lpSockContext->pRecvBegin, sizeof(short));
+
+	// 바디의 중간이 버퍼의 끝에 걸침
+	if (iExtra <= iBodysize + HEADERSIZE)
+	{
+		// 앞쪽에서 바디의 나머지 내용을 복사해온다.
+		CopyMemory(lpSockContext->RecvRingBuf + RINGBUFSIZE, lpSockContext->RecvRingBuf, iBodysize + HEADERSIZE - iExtra);
+		// 패킷을 꺼내기 위한 위치 조정
+		lpSockContext->pRecvBegin = lpSockContext->RecvRingBuf + iBodysize + HEADERSIZE - iExtra;
+	}
+	else
+	{
+		//패킷을 꺼내기 위한 위치 조정
+		lpSockContext->pRecvBegin = lpSockContext->pRecvBegin + iBodysize + HEADERSIZE;
+	}
+
+	//실제 패킷 크기 전달
+	*iPacketSize = iBodysize + HEADERSIZE;
+#ifdef _LOGLEVEL1_
+	printf( "RecvTcpBufDequeue : %d, %d byte\n", lpSockContext->index, *iPacketSize );
 #endif
 }
 
@@ -305,17 +390,21 @@ void PostTcpRecv(LPCLIENTCONTEXT lpSockContext)
 	// PENDING을 제외한 나머지 에러
 	if (iResult == SOCKET_ERROR && WSAGetLastError() != ERROR_IO_PENDING)
 	{
-		// never comes
 		printf("***** PostTcpRecv error : %d, %d\n", lpSockContext->iKey, WSAGetLastError());
 	}
 
 
 }
 
+void PostTcpSend(int iSockNum, int iSockAddr[], char *cpPacket, int iPacketSize)
+{
+
+}
+
 /*
 프로세스 객체의 요청
 
-이 함수는 각가의 유저로부터 전송받은 테이터를 이제 실제로 처리하도록 프로세스 객체에게 넘겨주는 과정을 처리하는 함수입니다. 
+이 함수는 각각의 유저로부터 전송받은 테이터를 이제 실제로 처리하도록 프로세스 객체에게 넘겨주는 과정을 처리하는 함수입니다. 
 그리하여 인자로는 유저 구조체의 포인터 단 하나만을 취하는 것입니다.
 
 각 유저로부터 전송받은 데이터는 WSARecv API를 통해 각각의 RecvRingBuf 에 쌓이게 된다.
@@ -368,25 +457,24 @@ void GameBufEnqueueTcp(LPCLIENTCONTEXT lpSockContext)
 	// 이제 제대로 완성된 하나의 패킷을 찾기 위해서 검사하는 과정을 행하는 것입니다.
 	// RecvMark로 부터 2바이트의 바디를 얻는 부분이 나온다.
 	// 만약 그것을 얻는데 있어서 링 버퍼가 회기한다면 가장 앞쪽에서 가져옵니다.
-	// 그런 후에 그 패킷이 타당하다면 Mark를 그곳으로 옭겨 주면서
+	// 그런 후에 그 패킷이 타당하다면 Mark를 그곳으로 옮겨 주면서
 	// 동시에 프로세스의 큐에 등록합니다.
 
 	while (1)
 	{
 		// 표시된 위치와 받기 버퍼의 끝과의 차이 구함
-		iExtra = lpSockContext->RecvRingBuf + RINGBUFSIZE - lpSockContext->pRecvMark;
+		iExtra = lpSockContext -> RecvRingBuf + RINGBUFSIZE - lpSockContext->pRecvMark;
 
 		// 차이가 바디의 크기를 나타내는 헤더보다 작음
 		if (iExtra < sizeof(short))
 		{
 			// 앞쪽에서 1바이트를 가져옴
 			*(lpSockContext->RecvRingBuf + RINGBUFSIZE) = *lpSockContext->RecvRingBuf;
-
 		}
 		// 바디 크기를 얻음
 		CopyMemory(&iBodySize, lpSockContext->pRecvMark, sizeof(short));
 
-		// 패킷이 실제 크기만큼 전송되지 안항ㅆ음
+		// 패킷이 실제 크기만큼 전송되지 않음
 		if (iRestSize < iBodySize + HEADERSIZE)
 			return;
 
@@ -398,8 +486,16 @@ void GameBufEnqueueTcp(LPCLIENTCONTEXT lpSockContext)
 			lpSockContext->pRecvMark -= RINGBUFSIZE;
 
 		// 검사해야 할 전체의 크기에서 지금 검사된 패킷에 대한 크기를 줄임
-
+		iRestSize -= iBodySize + HEADERSIZE;
 		// 패킷 처리를 위해 프로세스 큐에 넣음
+
+		g_Server.ps[lpSockContext->iProcess].GameBufEnqueue(lpSockContext);
+
+#ifdef _LOGLEVEL1_
+		printf( "GameBufEnqueueTcp : %d\n", lpSockContext->iKey );
+#endif
+		if (iRestSize < HEADERSIZE) 
+			return;
 	}
 }
 
