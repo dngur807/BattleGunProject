@@ -10,3 +10,8 @@ enum eTeamType
 	TEAM_B , 
 	TEAM_END,
 };
+enum eCharType
+{
+	CHAR_DEFAULT,
+	CHAR_END,
+};

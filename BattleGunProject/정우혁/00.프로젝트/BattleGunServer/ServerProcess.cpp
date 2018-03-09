@@ -3,7 +3,7 @@
 #include "IO.h"
 #include "Protocol.h"
 #include "Constant.h"
-
+#include "Util.h"
 #include "Coder.h"
 
 
@@ -20,7 +20,7 @@ CServerProcess::~CServerProcess()
 // 이것은 요청에 대한 큐와 그것의 처리를 위한 쓰레드로 구성되어 있는 형태로  그것들 한 쌍이 일정한 개수의 특정 지역(로비 , 채널) 에  위치한 유저들의
 // 요청을 처리하는 것이다. 그러므로 하나의 서버 프로세스 내에서는 처리를 위한 부분에 프로세스 객체 수만큼의 쓰레드가 운영된다.
 
-int CServerProcess::InitProcess()
+int InitProcess()
 {
 	// 설정된 수만큼 프로세스 객체 메모리 할당
 	g_Server.ps = new CServerProcess[g_Server.iMaxProcess];
@@ -34,7 +34,7 @@ int CServerProcess::InitProcess()
 	}
 	// 핸들러 함수 맵핑
 
-	g_OnTransFunc[E_REQUEST_LOGIN].proc = OnRequestLogin;
+	g_OnTransFunc[REQUEST_LOGIN].proc = OnRequestLogin;
 	return 0;
 }
 
@@ -148,29 +148,92 @@ UINT WINAPI GameProc(void* pParam)
 	 char			szID[MAX_STR];
 	 char			szPacket[MAX_STR];
 
-//	 char			cIndex;
-	// char			cTeam;
+	 char			cIndex;
+	 char			cTeam;
 	 int			iSize;
 	 
 
-	 coder.SetBuf(szPacket);
+	 coder.SetBuf(cpPacket);
 	 coder.GetChar(&IDlen);//아이디 길이
 	 coder.GetText(szID, IDlen);//아이디
 
-	 //컨텍스트에 아이디 저장
-	 //CopyMemory(lpSockContext->szID, szID, IDlen);
-	 ////lstrcpy(lpSockContext->tUserInfo.szID, lpSockContext->szID);
-	 //lpSockContext->idLen = IDlen;
+	 wchar_t wcID[32];
+	 //char to 
+	 CharToWChar(lpSockContext->szID, wcID);
 
-	 //lpSockContext->tUserInfo.iIndex = lpSockContext->iKey;
-	 //cIndex = lpSockContext->iKey;
-	 //g_Server.m_mapAllUserList.insert(make_pair(lpSockContext->iKey, lpSockContext));
+	 //컨텍스트에 아이디 저장
+	 CopyMemory(lpSockContext->szID, szID, IDlen);
+	 lstrcpy(lpSockContext->tUserInfo.szID, wcID);
+	 lpSockContext->idLen = IDlen;
+
+	 lpSockContext->tUserInfo.iIndex = lpSockContext->iKey;
+	 cIndex = lpSockContext->iKey;
+	 g_Server.m_mapAllUserList.insert(make_pair(lpSockContext->iKey, lpSockContext));
+
+
+	 // 서버에 현재 유저가 아무도 없다면
+	 if (g_Server.iAllUserNum == 0)
+	 {
+		 // 새로 들어온 유저의 전 노드는 링크가 되어 있지 않다.
+		 // 서버의 시작 유저를 지금 들어온 유저로 한다.
+
+		 g_Server.pn[lpSockContext->iKey].prev = NOTLINKED;
+		 g_Server.iUserBegin = g_Server.iUserEnd = lpSockContext->iKey;
+	 }
+	 else
+	 {
+		 g_Server.pn[g_Server.iUserEnd].next = lpSockContext->iKey;
+		 g_Server.pn[lpSockContext->iKey].prev = g_Server.iUserEnd;
+	 }
+	 g_Server.pn[lpSockContext->iKey].next = NOTLINKED;
+	 g_Server.iAllUserNum++;
+
+
+	 if (g_Server.iATeamNum < 4)
+	 {
+		 g_Server.iATeamNum++;
+		 g_Server.m_mapATeam.insert(make_pair(lpSockContext->iKey, lpSockContext));
+		 lpSockContext->tUserInfo.eTeam = TEAM_A;
+		 cTeam = TEAM_A;
+	 }
+	 else
+	 {
+		 g_Server.iBTeamNum++;
+		 g_Server.m_mapBTeam.insert(make_pair(lpSockContext->iKey, lpSockContext));
+		 lpSockContext->tUserInfo.eTeam = TEAM_B;
+		 cTeam = TEAM_B;
+	 }
+
+#ifdef _LOGLEVEL6_
+	 printf("OnRequestLogin(%d) : %s\n", lpSockContext->index, cID);
+	 printf("ID : %s\n", lpSockContext->m_tUserInfo.m_szID);
+#endif
 
 
 	 // 로그인 요청에 대한 응답
 	 coder.SetBuf(szPacket);
-	 coder.PutChar(E_SUCCESS_LOGIN);
-	 iSize = coder.SetHeader(E_NOTIFY_YOURINFO);//
-	 
+	 coder.PutChar(SUCCESS_LOGIN);
+	 iSize = coder.SetHeader(ANSWER_LOGIN);//
+	 PostTcpSend(1, (int*)&lpSockContext, cpPacket, iSize);
+
+	 coder.SetBuf(szPacket);
+	 coder.PutChar(cIndex);
+	 coder.PutChar(cTeam);
+
+	 iSize = coder.SetHeader(NOTIFY_YOURINFO);
+	 PostTcpSend(1, (int *)&lpSockContext, szPacket, iSize);
+
+
+
+	 coder.SetBuf(szPacket);
+	 coder.PutChar(cIndex);
+	 coder.PutChar(IDlen);
+	 coder.PutText(szID, IDlen);
+	 coder.PutChar(cTeam);
+	 coder.PutChar(lpSockContext->tUserInfo.CharType);
+
+	 iSize = coder.SetHeader(NOTIFY_USERLIST);
+	 PostTcpSend(g_Server.iUserBegin, szPacket, iSize);
+
 	 return 0;
 }

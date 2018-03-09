@@ -8,7 +8,6 @@ public:
 	CServerProcess();
 	~CServerProcess();
 public:
-	int InitProcess();
 	void GameBufEnqueue(LPCLIENTCONTEXT lpSockContext);
 	void GameBufDequeue(LPCLIENTCONTEXT* ppSockContext);
 
@@ -17,7 +16,6 @@ public:
 	// ---- Handler ----
 	friend int OnRequestLogin(LPCLIENTCONTEXT lpSockContext, char *cpPacket);
 
-private:
 	void Initialize(int idx);
 private:
 	int			iIndex; // «¡∑ŒººΩ∫ ∞¥√º ¿Œµ¶Ω∫
@@ -33,3 +31,4 @@ private:
 	HANDLE					hGameEvent;
 };
 
+int InitProcess();

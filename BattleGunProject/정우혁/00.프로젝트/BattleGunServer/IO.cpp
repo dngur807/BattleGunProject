@@ -43,6 +43,7 @@ int InitIO()
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY;
 	addr.sin_port = htons(PORTNUMBER);
+
 	itv = bind(g_Server.sockListener, (sockaddr*)&addr, sizeof(addr));
 	if (itv == SOCKET_ERROR)
 		return -1;
@@ -67,9 +68,12 @@ int InitIO()
 
 
 	// 최대 유저 수만큼의 구조체를 미리 만들어 놓는다.
-	g_Server.pClientBegin = new CLIENTCONTEXT[g_Server.iMaxUserNum];
-	if (g_Server.pClientBegin == NULL)
+	g_Server.sc = new CLIENTCONTEXT[g_Server.iMaxUserNum];
+	if (g_Server.sc == NULL)
 		return -1;
+
+	// 최대 유저 수만큼 노드를 만든다.
+	g_Server.pn = new OBJECTNODE[g_Server.iMaxUserNum];
 
 	// 해당 유저 정보 초기화
 	if (InitSocketContext(g_Server.iMaxUserNum) == -1)
@@ -80,6 +84,11 @@ int InitIO()
 	if (hThread == NULL)
 		return -1;
 
+// 사용자와의 데이터 통신을 위한 쓰레드는 Worker 개수 만큼 생성하자
+	for (int i = 0; i < g_Server.iWorkerTNum; ++i)
+	{
+		//hThread = (HANDLE)_beginthreadex(NULL , 0 , )
+	}
 
 	return 0;
 }
@@ -89,7 +98,7 @@ int InitSocketContext(int maxUser)
 	int itv;
 	DWORD	dwReceived;
 
-	LPCLIENTCONTEXT		lpClient = g_Server.pClientBegin;
+	LPCLIENTCONTEXT		lpClient = g_Server.sc;
 
 
 	// 소켓 컨텍스트 구조체 전체를 초기화합니다.
@@ -120,6 +129,7 @@ int InitSocketContext(int maxUser)
 		itv = AcceptEx(g_Server.sockListener, lpClient[i].sockClnt, lpClient[i].pRecvEnd
 			, MAXPACKETSIZE, sizeof(sockaddr_in) + 16, sizeof(sockaddr_in) + 16
 			, &dwReceived, (OVERLAPPED*)&lpClient[i].eovRecv);
+
 		if (itv == FALSE  &&  GetLastError() != ERROR_IO_PENDING)
 			return -1;
 
@@ -238,6 +248,89 @@ UINT WINAPI AcceptProc(void* pParam)
 			GameBufEnqueueTcp(lpClientContext);
 		}
 
+	}
+	return 0;
+}
+
+/*
+작업 쓰레드
+
+실제로 유저와의 응답을 처리한다.
+유저가 보낸 데이터를 버퍼에 저장하고 그것을 처리하도록 요구하며
+또한 유저에게 보내야 할 데이터를 보내는 과정을 쓰레드에서 처리한다.
+
+실제로는 쓰레드들이 되며 그것들을 풀링하는 작업은 커널에서 한다.
+적정한 수만큼의 쓰레드를 미리 생성하여 놓은 후에 보통의 경우에는 대기 상태로 있다가
+어떠한 작업을 요청 받을 때는 그 중의 하나가 활성화되어 그 작업을 처리하는 것입니다.
+
+이미 모든 쓰레드가 활성화되어 있다면 새로이 요청되는 작업은 그 쓰레드들 중에 어떠한 것이
+사용 가능할 때까지 기다리고 있다. 물론 어떠한 쓰레드를 사용하게 될지는
+쓰레드의 경쟁상태로 인하여 알 수 없다.
+*/
+UINT WINAPI WorkerProc(void* pParam)
+{
+	DWORD			dwTransferred;
+	LPEOVERLAPPED	lpEov;
+	LPCLIENTCONTEXT lpSockContext;
+	BOOL			bResult;
+
+	while (1)
+	{
+		// 유저로 부터 데이터를 받거나 서버에서 유저에게
+		// 보낸 데이터의 완료가 일어날 때까지 대기
+		// 어떠한 요청이 왔을 때 그 작업으로 인하여 전송받은 데이터의 양과
+		// Accept 시에 IOCP와 연결할 때
+		// Completion key로 넘겨주었던 해당 유저 구조체의 포인터 , 그 작업에서 사용되었던 오버랩 구조체의 포인터를 얻을 수 있다.
+		bResult = GetQueuedCompletionStatus(g_Server.hIocpWorkTcp, &dwTransferred,  (LPDWORD)&lpSockContext
+			, (LPOVERLAPPED*)&lpEov, INFINITE);
+
+		if (lpEov != NULL)
+		{
+			// 만약 넘겨진 오버랩 구조체가 NULL 이 아니면서
+			// 처리된 바이트 수가 0이라면 그것은 연결이 어떠한 이유에서든지  접속 끊김
+
+			if (dwTransferred == 0)
+			{
+				//소켓이 끊김을 요청 LOGOUT
+			}
+			else
+			{
+				// 넘어온 오버랩 구조체의 포인터는 어떠한 작업을 요청할 때 인자로 주어지는 것이다.
+				// 이러한 요청은 각각의 유저에 대하여 하게 되므로 유저 구조체 안에 멤버로 포함되어 있는 것입니다.
+				// 실제로 사용한 것은 그 오버랩 구조체가 어떠한 작업의 결과인지를 나타내기 위하여 상태 값을 가지고 있는 확장된 형태의 것을 사용합니다.
+				// 클라이언트로 부터 받은 데이터가 읽혀진 것에 대한 이벤트와 클라이언트로 보낼 데이터의 보내기가 완료된 이벤트에 대한 결과가
+				// 모두 이 작업 쓰레드로 넘어오기 때문에 발생한 이벤트가 어떤 것에 대한 결과인가를 구분하기 위하여 사용됩니다.
+
+
+				// 읽기용의 오버랩 구조체에서 신호
+				if (lpEov->mode == RECVEOVTCP)
+				{
+					//이벤트가 WSARecv에 의하여 발생한 것이라면
+					// RecvTcpBufEnque함수를 이용하여 그 데이터의 큐에 넣는 작업을 합니다.
+					// 읽기 버퍼 위치 조정
+					RecvTcpBufEnqueue(lpSockContext, dwTransferred);
+
+					// 패킷 처리를 요청
+					GameBufEnqueueTcp(lpSockContext);
+
+					// 다음번 읽기를 위해 비동기 읽기를 시도
+					PostTcpRecv(lpSockContext);
+				}
+				else if (lpEov->mode == SENDEOVTCP)
+				{
+					// 이벤트가 WSASend에 의하여 발생한 것이라면 오직 한가지 PostTcpSendRest 함수만을 호출합니다.
+					// 그 함수는 보내기 버퍼에 쌓인 나머지 데이터들을 전송하는 역할을 합니다.
+					// 가장 최초에 WSASend를 호출한다면 그것은 보내기를 원했던 만큼의 크기의 전송이 완료 되거나
+					// TCP의 특성으로 일부만 전송되었을 수 있는 것입니다.
+					// 그러한 이유로 일단 전송에 관한 입 / 출력이 완료되면 보내기를 원하는 바이트 수와 보내진 바이트 수를
+					// 검사하는 항목이 필요하며 그것이 바로 postSnedRest함수다.
+
+					//보내야 할 것이 더 있다면 나머지도 보내도록 요청
+					PostTcpSendRest(lpSockContext, dwTransferred);
+				}
+			}
+
+		}
 	}
 	return 0;
 }
@@ -395,10 +488,262 @@ void PostTcpRecv(LPCLIENTCONTEXT lpSockContext)
 
 
 }
+/*
+이 함수는 그룹에 속하는 유저들에게 전송을 할 때 사용하는 함수입니다.
+iBegin은 해당 그룹에서의 첫번째 유저에 대한 인덱스가 되는 것입니다.
+*/
 
-void PostTcpSend(int iSockNum, int iSockAddr[], char *cpPacket, int iPacketSize)
+/*
+유저들에게 데이터를 전송하는 과정에 있어서 SendRingBuf라는 링버퍼를 사용합니다.
+기본적인 운영 방식은 데이터를 전송받을 때 사용하였던 RecvRingbuf에서의 방법과 동일하다
+한가지 차이라면 여기에서는 하나의 패킷을 구분하기 위한 과정이 불필요하다는 것이다.
+
+
+이것 또한 TCP의 특성을 사용하는 것이다. 순차성이 보장되므로 그것을 한번에 보내든 두 번에 보내든 동일한 것이 되는 것이다.
+*/
+
+void PostTcpSend(int ibegin, char *cpPacket, int iPacketSize)
 {
+	LPCLIENTCONTEXT			lpSockContext;
+	WSABUF					wsaBuf;
+	DWORD					dwSent;
+	int						iResult, iExtra, iSendNow;
+	int						iNext;
 
+	iNext = ibegin;
+
+	// 더 이상 연결이 되어 있지 않을 때 까지 반복(그룹에 속해있는 유저 끝까지)
+
+	while (iNext != NOTLINKED)
+	{
+		//해당 인덱스에 대한 소켓 컨텍스를 얻는다.
+		lpSockContext = &g_Server.sc[iNext];
+
+		EnterCriticalSection(&lpSockContext->CS);
+		//보낼 데이터를 보내기 버퍼에 복사
+		CopyMemory(lpSockContext->pSendEnd, cpPacket, iPacketSize);
+		// 보낼 데이터가 보내기 버퍼의 마지막을 넘어서는가를 검사
+		iExtra = lpSockContext->pSendEnd + iPacketSize - lpSockContext->SendRingBuf - RINGBUFSIZE;
+
+		if (iExtra >= 0)
+		{
+			CopyMemory(lpSockContext->SendRingBuf, lpSockContext->SendRingBuf + RINGBUFSIZE, iExtra);
+			// 보내기 버퍼의 데이터를 쌓는 위치 수정
+			lpSockContext->pSendEnd = lpSockContext->SendRingBuf + iExtra;
+		}
+		else
+		{
+			lpSockContext->pSendEnd += iPacketSize;
+		}
+
+		// IOCP의 특성으로 동기화의 문제가 있는 부분이다.
+		// 유저들에게 데이터를 전송하기 위하여 WSASend를 하게 되었을 때
+		// 그 전송이 일부든 , 전체든 완료되었을 때 IOCP에 한번의 이벤트가 발생합니다.
+		// 그 이벤트가 발생하였을 때 그것이 모두가 전송되었다면 완료를,
+		// 그렇지 않다면 추가적인 전송을 하는 것입니다.
+		// 문제는 그러한 전송을 요구하는 , 즉 PostTcpSend 함수를 호출하는 쓰레드와
+		// WSASend가 완료되었을 떄의 이벤트를 받는 쓰레드와 다르다는 데 있다.
+		// 이 둘이 같은 유저 구조체에 대한 조작을 하기 때문에 동기화가 반드시 필요합니다.
+
+
+		// 정확하게는 데이터를 전송하기 위한 (PostTcpSend)쓰레드는 프로세스 객체에서 할당된 쓰레드가 , 
+		// PostTcpSendRest 쓰레드는 IOCP의 작업 쓰레드에 의해서 호출된다.
+
+
+		// 보내야만 하는 전체 크기 증가
+		lpSockContext->iSTRestCnt += iPacketSize;
+		// 보내야 하는 전체 양이 지금 요청된 값과 같은지 검사
+		iSendNow = (lpSockContext->iSTRestCnt == iPacketSize) ? TRUE : FALSE;
+
+
+
+		// 여기서는 유저에게 데이터를 보내는 요청에 대한 WSASend 작업을 당장 하게 할지
+		// 데이터만을 큐잉할지를 구분하는 플래그에 대한 값을 얻는 부분이다.
+		// 이미 보내기 위한 데이터가 SendRingBuf버퍼에 복사되었고
+		// SendRestCnt의 값이 보내기를 요청받은 iPacketSize 만큼
+		// 증가된 상태이므로 큐잉작업 자체는 완료된 상태가 됩니다.
+		// 그러한 상태에서 iSendRentCnt의 값이 iPacketSize와 같다면 요청 , 
+		// 처리해야 할 데이터가 남아있지 않은 상태에서 해당하는 요청이 바로 지금 WSASend의 시작점이 됩니다.
+		// 따라서 그러할 경우에 iSendNow라는 값을 참으로 만들어 데이터 전송을 즉시 실행하도록
+		// WSASend를 호출하는 것이다.
+
+		// 이미 보내기 과정중이 아니었으므로 
+		// 지금 요청된 것을 보내기 시작
+
+
+		if (iSendNow)
+		{
+			// 보내기 버퍼 설정
+			wsaBuf.buf = lpSockContext->pSendBegin;
+			wsaBuf.len = iPacketSize;
+
+			iResult = WSASend(lpSockContext->sockClnt, &wsaBuf, 1, &dwSent
+				, 0, (OVERLAPPED*)&lpSockContext->eovSend, NULL);
+
+			// PENDING을 제외한 에러
+			if (iResult == SOCKET_ERROR && WSAGetLastError() != ERROR_IO_PENDING)
+			{
+				printf("***** PostTcpSend error : %d, %d\n", lpSockContext->iKey, WSAGetLastError());
+			}
+		}
+		// 이미 다른 보내기가 진행중임
+		else
+		{
+			// 보내기 버퍼가 꽉 찼을 때
+			if (lpSockContext->iSTRestCnt > RINGBUFSIZE)
+			{
+				printf("*********** tcp sendbuf overflow!(%d) : %d ***********\n", lpSockContext->iKey, lpSockContext->iSTRestCnt);
+			}
+		}
+		//다음 링크로 넘김
+		iNext = g_Server.pn[iNext].next;
+		LeaveCriticalSection(&lpSockContext->CS);
+	}
+}
+
+/*
+이 함수는 선택된 유저들만을 대상으로 데이터를 전송할 때 사용된다.
+
+첫 번째 인자가 바로 선택된 유저들의 수
+두 번째 인자가 선택된 유저들의 인덱스에 대한 배열 리스트
+*/
+void PostTcpSend(int iUserNum, int iSockAddr[], char *cpPacket, int iPacketSize)
+{
+	LPCLIENTCONTEXT			lpSockContext;
+	WSABUF					wsaBuf;
+	DWORD					dwSent;
+	int						iResult, iExtra, iSendNow;
+
+	for (int i = 0; i < iUserNum; ++i)
+	{
+		lpSockContext = (LPCLIENTCONTEXT)(iSockAddr[i]);
+
+		// 패킷 카피
+		CopyMemory(lpSockContext->pSendEnd, cpPacket, iPacketSize);
+
+		// 링버퍼 위치 이동
+		iExtra = lpSockContext->pSendEnd + iPacketSize - lpSockContext->SendRingBuf - RINGBUFSIZE;
+		if (iExtra >= 0)
+		{
+			CopyMemory(lpSockContext->SendRingBuf, lpSockContext->SendRingBuf + RINGBUFSIZE, iExtra);
+			lpSockContext->pSendEnd = lpSockContext->SendRingBuf + iExtra;
+		}
+		else
+		{
+			lpSockContext->pSendEnd += iPacketSize;
+		}
+
+		EnterCriticalSection(&lpSockContext->CS);
+		lpSockContext->iSTRestCnt += iPacketSize;
+		iSendNow = (lpSockContext->iSTRestCnt == iPacketSize) ? TRUE : FALSE;
+		LeaveCriticalSection(&lpSockContext->CS);
+
+		if (iSendNow)
+		{
+			wsaBuf.buf = lpSockContext->pSendBegin;
+			wsaBuf.len = iPacketSize;
+
+			iResult = WSASend(lpSockContext->sockClnt, &wsaBuf, 1, &dwSent,
+				0, (OVERLAPPED*)&lpSockContext->eovSend, NULL);
+
+			if (iResult == SOCKET_ERROR && WSAGetLastError() != ERROR_IO_PENDING)
+			{
+				printf("***** PostTcpSend error : %d, %d\n", lpSockContext->iKey, WSAGetLastError());
+			}
+		}
+		else
+		{
+			if (lpSockContext->iSTRestCnt > RINGBUFSIZE)
+			{
+				/* it's not disconnection case */
+				printf("*********** tcp sendbuf overflow!(%d) : %d ***********\n", lpSockContext->iKey, lpSockContext->iSTRestCnt);
+			}
+		}
+
+	}
+}
+
+/*
+이 함수는 유저에게 보내야 하는 데이터들 중 아직 보내지 않은 나머지에 대한 전송을 하는 부분입니다.
+*/
+/*
+이 함수가 호출되었을 때는 iTransferred만큼의 전송된 바이트 수를 가지며
+그 만큼을 버퍼에서 지우는 부분이 이 함수에서 최초에 하는 작업이다.
+
+그런 후에 postTcpSend함수에서 설명한 iStRectCnt에서 전송된 iTransferred 크기 만큼을
+빼는 과정을 임계영역 내에서 하게 된다.
+
+이렇게 전송된 후에도 보내야 할 남아있는 데이터가 존재하며 그것을
+iRestSize라는 지역 변수에 넣는 것입니다. iRestSize에 0보다 큰 값이 있다면 추가적으로
+보내야 할 데이터가 있다는 말이된다.
+
+이 때 iSTRestCnt라는 값을 지역 변수인 iRestSize에 넣는 이유가 중요하다.
+지역 변수가 쓰레드 별로 할당된 스택을 사용하게 되므로
+그 값은 쓰레드에 안전한 것이 되는 것입니다.
+그런 이유로 iRestSize에 값을 할당한 후 , 임계영영을 해제하여도
+안전한 액세스가 가능한 것이다. 임계영역 또한 해제한 상태이므로
+postTcpSend 함수 역시 동시에 작업이 가능하다는 것을 알 수 있다.
+
+iRestSize에 0보다 큰 값이 있다면 아직 추가적으로 보내야 하는 데이터가 있으므로
+WSASend를 호출한다. 이때는 앞서 말한 것과 같이 패킷 단위로 구분을
+할 필요가 없으므로 그것이 적정수내에서 한번에 모두 전송할 수 있다.
+*/
+void PostTcpSendRest(LPCLIENTCONTEXT lpSockContext, int iTransferred)
+{
+	WSABUF				wsaBuf;
+	DWORD				dwSent;
+	int					iResult, iRestSize, iExtra;
+
+	// 완료된 양만큼 보내기 시작하는 버퍼의 위치를 뒤로 옮김
+	iExtra = lpSockContext->pSendBegin + iTransferred - lpSockContext->SendRingBuf - RINGBUFSIZE;
+
+	if (iExtra >= 0)
+	{
+		lpSockContext->pSendBegin = lpSockContext->SendRingBuf + iExtra;
+	}
+	else
+	{
+		lpSockContext->pSendBegin += iTransferred;
+	}
+	EnterCriticalSection(&lpSockContext->CS);
+	// 보내야하는 총량을 전송된 양만큼 줄임
+	lpSockContext->iSTRestCnt -= iTransferred;
+	// 아직 보내야 하는 양이 있는가??
+	iRestSize = lpSockContext->iSTRestCnt;
+	LeaveCriticalSection(&lpSockContext->CS);
+
+	// 추가적으로 전송해야 할 양이 없음
+	if (iRestSize == 0)
+	{
+
+	}
+	// 추가적으로 전송해야 할 양이 있음
+	else if (iRestSize > 0)
+	{
+		// 가능한 최대의 양을 한번에 전송하려고 계산
+		if (iRestSize > MAXPACKETSIZE) iRestSize = MAXPACKETSIZE;
+
+		iExtra = lpSockContext->SendRingBuf + RINGBUFSIZE - lpSockContext->pSendBegin;
+
+		// 버퍼가 회기한다면 앞에서 일정량을 복사해옴
+		if (iExtra < iRestSize)
+		{
+			CopyMemory(lpSockContext->SendRingBuf + RINGBUFSIZE, lpSockContext->SendRingBuf, iRestSize - iExtra);
+		}
+
+		// 패킷 전송
+		wsaBuf.buf = lpSockContext->pSendBegin;
+		wsaBuf.len = iRestSize;
+
+		iResult = WSASend(lpSockContext->sockClnt, &wsaBuf, 1, &dwSent
+			, 0, (OVERLAPPED*)&lpSockContext->eovSend, NULL);
+
+		if (iResult == SOCKET_ERROR && WSAGetLastError() != ERROR_IO_PENDING)
+		{
+			// kick
+			printf("***** PostTcpSendRest error : %d, %d\n", lpSockContext->iKey, WSAGetLastError());
+		}
+	}
 }
 
 /*
@@ -488,7 +833,6 @@ void GameBufEnqueueTcp(LPCLIENTCONTEXT lpSockContext)
 		// 검사해야 할 전체의 크기에서 지금 검사된 패킷에 대한 크기를 줄임
 		iRestSize -= iBodySize + HEADERSIZE;
 		// 패킷 처리를 위해 프로세스 큐에 넣음
-
 		g_Server.ps[lpSockContext->iProcess].GameBufEnqueue(lpSockContext);
 
 #ifdef _LOGLEVEL1_

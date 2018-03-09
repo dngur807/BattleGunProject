@@ -1,5 +1,6 @@
 #pragma once
 
+#define _CRT_SECURE_NO_WARNINGS
 #include <WinSock2.h>
 #include <MSWSock.h>
 #include <iostream>
@@ -7,7 +8,8 @@
 #include <process.h>
 #include <map>
 #include <vector>
-
+#include <string.h>
+#include <stdlib.h>
 using namespace std;
 
 
