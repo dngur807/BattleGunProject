@@ -1,0 +1,252 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="01.MainView">
+      <UniqueIdentifier>{41a4c879-2155-4792-a662-2c9e0e238069}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02.BackGround">
+      <UniqueIdentifier>{ff0de4dc-7606-426c-abd6-470d395d9c67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Camera">
+      <UniqueIdentifier>{c3835644-1667-4a61-bb42-9f04db194105}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.Dialog">
+      <UniqueIdentifier>{b20cd11d-003b-4df0-8076-6dd33824202a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98.Header">
+      <UniqueIdentifier>{bad64086-0699-4150-a691-72a3b3cbc4ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99.Default">
+      <UniqueIdentifier>{7642cfa8-a398-4efc-adbb-0d606f3749eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99.Default\리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="99.Default\소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="99.Default\헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="05.Terrain">
+      <UniqueIdentifier>{d0cd4537-3f11-40b7-8d7e-8eadf4b6468a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Stone">
+      <UniqueIdentifier>{f933fcf7-e57c-4a29-8bf9-1c32cf76e984}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00.MainFrame">
+      <UniqueIdentifier>{05056e46-82fc-4111-a4a2-67d7d91f3ed1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Include.h">
+      <Filter>99.Default\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>99.Default\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>99.Default\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="IncludeDoc.h">
+      <Filter>99.Default\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>99.Default\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FileView.h">
+      <Filter>99.Default\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassView.h">
+      <Filter>99.Default\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewTree.h">
+      <Filter>99.Default\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="OutputWnd.h">
+      <Filter>99.Default\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertiesWnd.h">
+      <Filter>99.Default\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MainFrm.h">
+      <Filter>00.MainFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="IncludeView.h">
+      <Filter>01.MainView</Filter>
+    </ClInclude>
+    <ClInclude Include="BackGround.h">
+      <Filter>02.BackGround</Filter>
+    </ClInclude>
+    <ClInclude Include="MapEdit.h">
+      <Filter>04.Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\DynamicCamera.h">
+      <Filter>03.Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\Const.h">
+      <Filter>98.Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\Define.h">
+      <Filter>98.Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\Enum.h">
+      <Filter>98.Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\Include1.h">
+      <Filter>98.Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\Terrain.h">
+      <Filter>05.Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\Stone.h">
+      <Filter>06.Stone</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Include.cpp">
+      <Filter>99.Default\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>99.Default\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="IncludeDoc.cpp">
+      <Filter>99.Default\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="FileView.cpp">
+      <Filter>99.Default\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ClassView.cpp">
+      <Filter>99.Default\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewTree.cpp">
+      <Filter>99.Default\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="OutputWnd.cpp">
+      <Filter>99.Default\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesWnd.cpp">
+      <Filter>99.Default\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MainFrm.cpp">
+      <Filter>00.MainFrame</Filter>
+    </ClCompile>
+    <ClCompile Include="IncludeView.cpp">
+      <Filter>01.MainView</Filter>
+    </ClCompile>
+    <ClCompile Include="BackGround.cpp">
+      <Filter>02.BackGround</Filter>
+    </ClCompile>
+    <ClCompile Include="MapEdit.cpp">
+      <Filter>04.Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\DynamicCamera.cpp">
+      <Filter>03.Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\Terrain.cpp">
+      <Filter>05.Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\Stone.cpp">
+      <Filter>06.Stone</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Include.rc">
+      <Filter>99.Default\리소스 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\file_view.ico">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\file_view_hc.ico">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\class_view.ico">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\class_view_hc.ico">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\fileview.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\fileview_hc.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\classview.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\classview_hc.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\explorer.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\explorer_hc.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\sort.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\sort_hc.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\menuimages.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\menuimages_hc.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\output_wnd.ico">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\output_wnd_hc.ico">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\properties_wnd.ico">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\properties_wnd_hc.ico">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\properties.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\properties_hc.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="UserImages.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\IncludeDoc.ico">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\Include.ico">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\Toolbar.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+    <Image Include="res\Toolbar256.bmp">
+      <Filter>99.Default\리소스 파일</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\Include.rc2">
+      <Filter>99.Default\리소스 파일</Filter>
+    </None>
+    <None Include="ClassDiagram.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\bin\FX\basic.fx">
+      <Filter>99.Default</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>
