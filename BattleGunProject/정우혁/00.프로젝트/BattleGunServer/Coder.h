@@ -37,6 +37,11 @@ public:
 		CopyMemory(m_pEnd, cpData, iSize);
 		m_pEnd += iSize;
 	}
+	inline void PutText(TCHAR* cpData, int iSize)
+	{
+		CopyMemory(m_pEnd, cpData, iSize);
+		m_pEnd += iSize;
+	}
 private:
 	char*			m_pBegin;
 	char*			m_pEnd;
