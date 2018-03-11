@@ -74,6 +74,8 @@ typedef struct
 }CLIENTCONTEXT, *LPCLIENTCONTEXT;
 //서버 정보 구조체이다. 
 // 서버 프로그램 전체에서 사용하는 서버 정보를 위한 전역 구조체이다.
+class CLooby;
+
 typedef struct 
 {
 	SOCKET					sockListener;//유저의 접속을 기다리는 리슨 소켓이다.
@@ -88,6 +90,8 @@ typedef struct
 	CServerProcess*			ps;//프로세스 시작점
 	OBJECTNODE*				pn;//플레이어들의 노드
 
+	CLooby*						pLobby;
+
 	int						iMaxProcess;
 	//게임 전용
 	CRITICAL_SECTION		 CS;
@@ -101,6 +105,8 @@ typedef struct
 	map<int, LPCLIENTCONTEXT>	m_mapAllUserList;
 	map<int, LPCLIENTCONTEXT>	m_mapATeam;
 	map<int, LPCLIENTCONTEXT>	m_mapBTeam;
+
+	eMapType					m_eMapType;
 
 }SERVERCONTEXT, *LPSERVERCONTEXT;
 

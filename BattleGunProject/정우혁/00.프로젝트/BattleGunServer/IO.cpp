@@ -25,13 +25,29 @@ AcceptEx 는 소켓을 미리 생성한 후 새로운 접속이 이뤄졌을 때 그 소켓을 사용하는 �
 
 int InitIO()
 {
+	char			localHostName[MAX_PATH];
+	IN_ADDR			in_Addr;
+	HOSTENT*		pHost;
+	char			ip[20];
+
 	WSADATA			wsa;
 	SOCKADDR_IN		addr;
 	HANDLE			hThread;
 	int				itv;
-
+	
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		return -1;
+
+
+	memset(localHostName, 0, sizeof(MAX_PATH));
+	gethostname(localHostName, MAX_PATH);
+	pHost = gethostbyname(localHostName);
+	memcpy(&in_Addr, pHost->h_addr, 4);
+	strcpy_s(ip, sizeof(ip), inet_ntoa(in_Addr));
+
+	cout << "Server IP 주소 : " << ip << endl;
+
+
 
 	//  클라이언트의 접속을 받기위한 리슨 소켓 생성
 	// 오버랩드 옵션을 사용하기 위해서 넌블로킹 모드 소켓
@@ -87,7 +103,9 @@ int InitIO()
 // 사용자와의 데이터 통신을 위한 쓰레드는 Worker 개수 만큼 생성하자
 	for (int i = 0; i < g_Server.iWorkerTNum; ++i)
 	{
-		//hThread = (HANDLE)_beginthreadex(NULL , 0 , )
+		hThread = (HANDLE)_beginthreadex(NULL, 0, WorkerProc, (void*)i, 0, (unsigned int*)&itv);
+		if (hThread == NULL) 
+			return -1;
 	}
 
 	return 0;
@@ -108,6 +126,7 @@ int InitSocketContext(int maxUser)
 	{
 		// 유저 구조체 별로 인덱스를 부여합니다.
 		lpClient[i].iKey = i;
+		lpClient[i].iSTRestCnt = 0;
 		lpClient[i].eovSend.mode = SENDEOVTCP;
 		lpClient[i].eovRecv.mode = RECVEOVTCP;
 
@@ -218,6 +237,7 @@ UINT WINAPI AcceptProc(void* pParam)
 			GetAcceptExSockaddrs(lpClientContext->pRecvEnd, MAXPACKETSIZE, sizeof(sockaddr_in) + 16
 				, sizeof(sockaddr_in) + 16, (sockaddr**)&pLocal, &localLen, (sockaddr**)&pRemote, &remoteLen);
 
+			printf("Client Accept Num : %d  IP : %s\n\n", g_Server.iCurUserNum, inet_ntoa(pRemote->sin_addr));
 
 			CopyMemory(&lpClientContext->remoteAddr, pRemote, sizeof(sockaddr_in));
 

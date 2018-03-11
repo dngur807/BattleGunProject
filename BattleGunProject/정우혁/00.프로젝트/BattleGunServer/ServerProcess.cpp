@@ -176,7 +176,6 @@ UINT WINAPI GameProc(void* pParam)
 	 {
 		 // 새로 들어온 유저의 전 노드는 링크가 되어 있지 않다.
 		 // 서버의 시작 유저를 지금 들어온 유저로 한다.
-
 		 g_Server.pn[lpSockContext->iKey].prev = NOTLINKED;
 		 g_Server.iUserBegin = g_Server.iUserEnd = lpSockContext->iKey;
 	 }
@@ -214,7 +213,7 @@ UINT WINAPI GameProc(void* pParam)
 	 coder.SetBuf(szPacket);
 	 coder.PutChar(SUCCESS_LOGIN);
 	 iSize = coder.SetHeader(ANSWER_LOGIN);//
-	 PostTcpSend(1, (int*)&lpSockContext, cpPacket, iSize);
+	 PostTcpSend(1, (int*)&lpSockContext, szPacket, iSize);
 
 	 coder.SetBuf(szPacket);
 	 coder.PutChar(cIndex);
@@ -225,15 +224,15 @@ UINT WINAPI GameProc(void* pParam)
 
 
 
-	 coder.SetBuf(szPacket);
-	 coder.PutChar(cIndex);
-	 coder.PutChar(IDlen);
-	 coder.PutText(szID, IDlen);
-	 coder.PutChar(cTeam);
-	 coder.PutChar(lpSockContext->tUserInfo.CharType);
+	  coder.SetBuf(szPacket);
+	  coder.PutChar(cIndex);
+	  coder.PutChar(IDlen);
+	  coder.PutText(szID, IDlen);
+	  coder.PutChar(cTeam);
+	  coder.PutChar(lpSockContext->tUserInfo.CharType);
 
-	 iSize = coder.SetHeader(NOTIFY_USERLIST);
-	 PostTcpSend(g_Server.iUserBegin, szPacket, iSize);
+	  iSize = coder.SetHeader(NOTIFY_USERLIST);
+	  PostTcpSend(g_Server.iUserBegin, szPacket, iSize);
 
 	 return 0;
 }

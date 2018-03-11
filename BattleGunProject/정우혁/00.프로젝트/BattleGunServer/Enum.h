@@ -10,6 +10,11 @@ enum eTeamType
 	TEAM_B , 
 	TEAM_END,
 };
+enum eMapType
+{
+	MAP_GESTALT,
+	MAP_END,
+};
 enum eCharType
 {
 	CHAR_DEFAULT,

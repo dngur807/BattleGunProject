@@ -3,6 +3,7 @@
 #include "Include.h"
 #include "IO.h"
 #include "ServerProcess.h"
+#include "Lobby.h"
 
 SERVERCONTEXT			g_Server;
 
@@ -16,7 +17,7 @@ int main()
 	g_Server.iAllUserNum = 0;
 	g_Server.iATeamNum = 0;
 	g_Server.iBTeamNum = 0;
-
+	g_Server.m_eMapType = MAP_GESTALT;
 
 	GetSystemInfo(&si);// 현재 사용 중인 컴퓨터의 시스템에 관련된 정보를 반환합니다.
 	g_Server.iWorkerTNum = min(si.dwNumberOfProcessors * 2, 16);
@@ -29,6 +30,9 @@ int main()
 	if (InitIO() == -1)
 		return 0;
 	// 로비 초기화
+	if (InitLobby() == -1)
+		return 0;
+
 	// 인게임 초기화
 
 	// 프로세스 초기화
