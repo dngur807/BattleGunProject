@@ -27,6 +27,9 @@ int OnRequestLobbyInfo(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 	int iPacketSize;
 	char cPacket[MAX_STR];
 
+#ifdef _FROM_CLIENT_
+	printf("FROM CLIENT OnRequestLobbyInfo \n");
+#endif
 	OnNotifyUserList(lpSockContext, NULL);
 
 	coder.SetBuf(cPacket);
@@ -46,13 +49,13 @@ int OnRequestLobbyInfo(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 
 int OnNotifyUserList(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 {
+#ifdef _TO_CLIENT_
+	printf("TO CLIENT OnNotifyUserList \n");
+#endif
+
 	CCoder coder;
 	int iPacketSize;
 	char cPacket[MAX_STR];
-
-#ifdef _LOG_LOBBY_
-	printf("OnNotifyUserList(%d)\n", lpSockContext->index);
-#endif
 
 	map<int, LPCLIENTCONTEXT>::iterator iter = g_Server.m_mapAllUserList.begin();
 	map<int, LPCLIENTCONTEXT>::iterator iter_end = g_Server.m_mapAllUserList.end();

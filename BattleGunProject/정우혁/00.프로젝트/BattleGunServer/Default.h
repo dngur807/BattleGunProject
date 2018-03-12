@@ -16,3 +16,6 @@ using namespace std;
 
 #pragma comment( lib, "ws2_32.lib" )
 #pragma comment(lib,"mswsock.lib")  // AcceptEx()
+#define _SEVER_DEBUG_
+#define _FROM_CLIENT_
+#define _TO_CLIENT_

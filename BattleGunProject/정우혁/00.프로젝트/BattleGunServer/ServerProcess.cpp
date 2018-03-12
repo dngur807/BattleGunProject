@@ -157,13 +157,12 @@ UINT WINAPI GameProc(void* pParam)
 	 coder.GetChar(&IDlen);//아이디 길이
 	 coder.GetText(szID, IDlen);//아이디
 
-	 wchar_t wcID[32];
-	 //char to 
-	 CharToWChar(lpSockContext->szID, wcID);
-
 	 //컨텍스트에 아이디 저장
 	 CopyMemory(lpSockContext->szID, szID, IDlen);
-	 lstrcpy(lpSockContext->tUserInfo.szID, wcID);
+	 MultiByteToWideChar(CP_ACP, 0, lpSockContext->szID, -1, lpSockContext->tUserInfo.szID, sizeof(lpSockContext->tUserInfo.szID));
+
+
+	// lstrcpy(lpSockContext->tUserInfo.szID, lpSockContext->szID);
 	 lpSockContext->idLen = IDlen;
 
 	 lpSockContext->tUserInfo.iIndex = lpSockContext->iKey;
@@ -208,7 +207,9 @@ UINT WINAPI GameProc(void* pParam)
 	 printf("ID : %s\n", lpSockContext->m_tUserInfo.m_szID);
 #endif
 
-
+#ifdef _TO_CLIENT_
+	 printf("TO CLIENT ANSWER_LOGIN \n");
+#endif
 	 // 로그인 요청에 대한 응답
 	 coder.SetBuf(szPacket);
 	 coder.PutChar(SUCCESS_LOGIN);
@@ -218,7 +219,9 @@ UINT WINAPI GameProc(void* pParam)
 	 coder.SetBuf(szPacket);
 	 coder.PutChar(cIndex);
 	 coder.PutChar(cTeam);
-
+#ifdef _TO_CLIENT_
+	 printf("TO CLIENT NOTIFY_YOURINFO \n");
+#endif
 	 iSize = coder.SetHeader(NOTIFY_YOURINFO);
 	 PostTcpSend(1, (int *)&lpSockContext, szPacket, iSize);
 
@@ -230,7 +233,9 @@ UINT WINAPI GameProc(void* pParam)
 	  coder.PutText(szID, IDlen);
 	  coder.PutChar(cTeam);
 	  coder.PutChar(lpSockContext->tUserInfo.CharType);
-
+#ifdef _TO_CLIENT_
+	  printf("TO CLIENT NOTIFY_USERLIST \n");
+#endif
 	  iSize = coder.SetHeader(NOTIFY_USERLIST);
 	  PostTcpSend(g_Server.iUserBegin, szPacket, iSize);
 
