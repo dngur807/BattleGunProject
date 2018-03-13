@@ -160,13 +160,10 @@ UINT WINAPI GameProc(void* pParam)
 	 //컨텍스트에 아이디 저장
 	 CopyMemory(lpSockContext->szID, szID, IDlen);
 	 MultiByteToWideChar(CP_ACP, 0, lpSockContext->szID, -1, lpSockContext->tUserInfo.szID, sizeof(lpSockContext->tUserInfo.szID));
-
-
-	// lstrcpy(lpSockContext->tUserInfo.szID, lpSockContext->szID);
 	 lpSockContext->idLen = IDlen;
 
-	 lpSockContext->tUserInfo.iIndex = lpSockContext->iKey;
 	 cIndex = lpSockContext->iKey;
+	 lpSockContext->tUserInfo.iIndex = lpSockContext->iKey;
 	 g_Server.m_mapAllUserList.insert(make_pair(lpSockContext->iKey, lpSockContext));
 
 
@@ -182,6 +179,7 @@ UINT WINAPI GameProc(void* pParam)
 	 {
 		 g_Server.pn[g_Server.iUserEnd].next = lpSockContext->iKey;
 		 g_Server.pn[lpSockContext->iKey].prev = g_Server.iUserEnd;
+		 g_Server.iUserEnd = lpSockContext->iKey;
 	 }
 	 g_Server.pn[lpSockContext->iKey].next = NOTLINKED;
 	 g_Server.iAllUserNum++;

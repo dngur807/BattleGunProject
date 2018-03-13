@@ -90,6 +90,9 @@ int InitIO()
 
 	// 최대 유저 수만큼 노드를 만든다.
 	g_Server.pn = new OBJECTNODE[g_Server.iMaxUserNum];
+	if (g_Server.pn == NULL)
+		return -1;
+
 
 	// 해당 유저 정보 초기화
 	if (InitSocketContext(g_Server.iMaxUserNum) == -1)
@@ -237,7 +240,7 @@ UINT WINAPI AcceptProc(void* pParam)
 			GetAcceptExSockaddrs(lpClientContext->pRecvEnd, MAXPACKETSIZE, sizeof(sockaddr_in) + 16
 				, sizeof(sockaddr_in) + 16, (sockaddr**)&pLocal, &localLen, (sockaddr**)&pRemote, &remoteLen);
 
-			printf("Client Accept Num : %d  IP : %s\n\n", g_Server.iCurUserNum, inet_ntoa(pRemote->sin_addr));
+			printf("Client Accept Num : %d  Index : %d IP : %s\n\n", g_Server.iCurUserNum, lpClientContext->iKey, inet_ntoa(pRemote->sin_addr));
 
 			CopyMemory(&lpClientContext->remoteAddr, pRemote, sizeof(sockaddr_in));
 
@@ -748,7 +751,8 @@ void PostTcpSendRest(LPCLIENTCONTEXT lpSockContext, int iTransferred)
 		// 버퍼가 회기한다면 앞에서 일정량을 복사해옴
 		if (iExtra < iRestSize)
 		{
-			CopyMemory(lpSockContext->SendRingBuf + RINGBUFSIZE, lpSockContext->SendRingBuf, iRestSize - iExtra);
+			CopyMemory(lpSockContext->SendRingBuf + RINGBUFSIZE, 
+				lpSockContext->SendRingBuf, iRestSize - iExtra);
 		}
 
 		// 패킷 전송

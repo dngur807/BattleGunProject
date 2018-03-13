@@ -1,4 +1,3 @@
-#pragma once
 enum eProtocolType
 {
 	REQUEST_LOGIN = 0,
@@ -6,11 +5,14 @@ enum eProtocolType
 	NOTIFY_YOURINFO, // 인덱스 및 팀정보 등등
 
 	// 로비 프로토콜
-	 REQUEST_LOBBYINFO,
-	 NOTIFY_USERLIST , 
+	REQUEST_LOBBYINFO,
+	NOTIFY_USERLIST,
 
-	 NOTIFY_ROOMMANAGER ,
-	 NOTIFY_MAPCHANGE , 
+	NOTIFY_ROOMMANAGER,
+	NOTIFY_MAPCHANGE,
+
+	REQUEST_CHANGETEAM,//index , team
+	NOTIFY_CHANGETEAM , 
 };
 
 enum
