@@ -12,7 +12,13 @@ enum eProtocolType
 	NOTIFY_MAPCHANGE,
 
 	REQUEST_CHANGETEAM,//index , team
-	NOTIFY_CHANGETEAM , 
+	NOTIFY_CHANGETEAM,
+
+	REQUEST_ALLCHAT,
+	// msgLen(1), msg(text) : 메시지는 256 자 이내가 되겄져...
+	NOTIFY_ALLCHAT
+	// msgLen(1), msg(text) : 메시지는 256 자 이내가 되겄져...
+
 };
 
 enum

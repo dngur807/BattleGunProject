@@ -33,8 +33,8 @@ int InitProcess()
 		g_Server.ps[i].Initialize(i);
 	}
 	// 핸들러 함수 맵핑
-
 	g_OnTransFunc[REQUEST_LOGIN].proc = OnRequestLogin;
+	g_OnTransFunc[REQUEST_ALLCHAT].proc = OnRequestAllChat;
 	return 0;
 }
 
@@ -75,6 +75,18 @@ void CServerProcess::GameBufDequeue(LPCLIENTCONTEXT* ppSockContext)
 	iRestCount--;
 }
 
+int OnRequestAllChat(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
+{
+	 short header;
+	 header = NOTIFY_ALLCHAT;
+
+	 CopyMemory(cpPacket + sizeof(short), &header, sizeof(short));
+	 CopyMemory(&header, cpPacket, sizeof(short));
+	 PostTcpSend(g_Server.iUserBegin, cpPacket, header + HEADERSIZE);
+	 return 0;
+
+}
+
 void CServerProcess::Initialize(int idx)
 {
 	int				itv;
@@ -90,6 +102,7 @@ void CServerProcess::Initialize(int idx)
 	hGame = (HANDLE)_beginthreadex(NULL, 0, GameProc, this, 0, (UINT *)&itv);
 	CloseHandle(hGame);
 }
+
 // 프로세스 객체마다 생성되는 쓰레드는 실제적인 패킷의 처리를 위하여 작동합니다.
 // 즉 큐에 하나씩 쌓이는 데이터를 꺼내와서 해석 , 처리하는 것입니다.
 // (정확하게는 큐에 쌓이는 유저 구조체의 포인터를 이용하여 그 포인터에 해당하는 유저의 RingBuf의 값을 얻어오는 것이다.
@@ -97,6 +110,7 @@ void CServerProcess::Initialize(int idx)
 // 이것은 프로세스 객체의 멤버 함수 InitProcess에서 생성되는 것입니다.
 // 큐에 쌓인 데이터를 가져오는데는 몇 가지 방법이 있을 수있다.
 // 여기서는 일정시간 간격으로 큐를 검사하여 데이터가 있으면 가져오고 그렇지 않으면 무효시키는 방법을 사용하였다.
+
 UINT WINAPI GameProc(void* pParam)
 {
 	CServerProcess*			pProcess = (CServerProcess*)pParam;

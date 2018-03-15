@@ -15,7 +15,7 @@ public:
 
 	// ---- Handler ----
 	friend int OnRequestLogin(LPCLIENTCONTEXT lpSockContext, char *cpPacket);
-
+	friend int OnRequestAllChat(LPCLIENTCONTEXT lpSockContext, char *cpPacket);
 	void Initialize(int idx);
 private:
 	int			iIndex; // «¡∑ŒººΩ∫ ∞¥√º ¿Œµ¶Ω∫
