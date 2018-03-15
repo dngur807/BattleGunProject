@@ -1,0 +1,99 @@
+﻿  WaveFrontReader.cpp
+  VIBuffer.cpp
+  TriColor.cpp
+  Texture.cpp
+  TerrainTex.cpp
+  StaticMesh.cpp
+  SkinnedModel.cpp
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\skinnedmodel.cpp(81): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\skinnedmodel.cpp(95): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\skinnedmodel.cpp(169): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\skinnedmodel.cpp(214): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  SkinnedMesh.cpp
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\skinnedmesh.cpp(192): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\skinnedmesh.cpp(208): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+  SceneAnimator.cpp
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\sceneanimator.cpp(474): warning C4018: '>=': signed 또는 unsigned가 일치하지 않습니다.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\sceneanimator.cpp(625): warning C4018: '>=': signed 또는 unsigned가 일치하지 않습니다.
+  Resources.cpp
+  ResourceMgr.cpp
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\resourcemgr.cpp(156): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1769): note: 'sprintf' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\resourcemgr.cpp(191): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1769): note: 'sprintf' 선언을 참조하십시오.
+  RcTex.cpp
+  RcColor.cpp
+  PrimitiveFactory.cpp
+  Primitive.cpp
+  ModelObj.cpp
+  ModelMgr.cpp
+  ModelMesh.cpp
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\modelmesh.cpp(136): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+  Mesh.cpp
+  CubeTex.cpp
+  코드를 생성하고 있습니다...
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\sceneanimator.cpp(550): warning C4172: 지역 변수 또는 임시의 주소를 반환하고 있습니다.
+  컴파일하고 있습니다...
+  CubeColor.cpp
+  코드를 생성하고 있습니다...
+  컴파일하고 있습니다...
+  DynamicMesh.cpp
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(81): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(92): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(131): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(133): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(196): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(199): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(224): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: 'fopen' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(230): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(119): note: 'strcpy' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(231): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(119): note: 'strcpy' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(244): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(90): note: 'strcat' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(247): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: 'fopen' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(261): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(90): note: 'strcat' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(262): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(90): note: 'strcat' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(264): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: 'fopen' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(271): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(90): note: 'strcat' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(272): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(90): note: 'strcat' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(274): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: 'fopen' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(288): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(119): note: 'strcpy' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(289): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: 'fopen' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(291): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(119): note: 'strcpy' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(318): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(119): note: 'strcpy' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(331): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(90): note: 'strcat' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(363): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(90): note: 'strcat' 선언을 참조하십시오.
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\resources\code\dynamicmesh.cpp(377): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(90): note: 'strcat' 선언을 참조하십시오.
+  코드를 생성하고 있습니다...
+     ..\bin\Resources.lib 라이브러리 및 ..\bin\Resources.exp 개체를 생성하고 있습니다.
+DirectXTexd.lib(BC.obj) : warning LNK4099: 'DirectXTex.pdb' PDB를 'DirectXTexd.lib(BC.obj)' 또는 'D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Engine\Resources\bin\DirectXTex.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+DirectXTexd.lib(BC4BC5.obj) : warning LNK4099: 'DirectXTex.pdb' PDB를 'DirectXTexd.lib(BC4BC5.obj)' 또는 'D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Engine\Resources\bin\DirectXTex.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+DirectXTexd.lib(BC6HBC7.obj) : warning LNK4099: 'DirectXTex.pdb' PDB를 'DirectXTexd.lib(BC6HBC7.obj)' 또는 'D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Engine\Resources\bin\DirectXTex.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+DirectXTexd.lib(DirectXTexCompress.obj) : warning LNK4099: 'DirectXTex.pdb' PDB를 'DirectXTexd.lib(DirectXTexCompress.obj)' 또는 'D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Engine\Resources\bin\DirectXTex.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+DirectXTexd.lib(DirectXTexConvert.obj) : warning LNK4099: 'DirectXTex.pdb' PDB를 'DirectXTexd.lib(DirectXTexConvert.obj)' 또는 'D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Engine\Resources\bin\DirectXTex.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+DirectXTexd.lib(DirectXTexD3D11.obj) : warning LNK4099: 'DirectXTex.pdb' PDB를 'DirectXTexd.lib(DirectXTexD3D11.obj)' 또는 'D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Engine\Resources\bin\DirectXTex.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+DirectXTexd.lib(DirectXTexDDS.obj) : warning LNK4099: 'DirectXTex.pdb' PDB를 'DirectXTexd.lib(DirectXTexDDS.obj)' 또는 'D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Engine\Resources\bin\DirectXTex.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+DirectXTexd.lib(DirectXTexHDR.obj) : warning LNK4099: 'DirectXTex.pdb' PDB를 'DirectXTexd.lib(DirectXTexHDR.obj)' 또는 'D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Engine\Resources\bin\DirectXTex.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+DirectXTexd.lib(DirectXTexImage.obj) : warning LNK4099: 'DirectXTex.pdb' PDB를 'DirectXTexd.lib(DirectXTexImage.obj)' 또는 'D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Engine\Resources\bin\DirectXTex.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+DirectXTexd.lib(DirectXTexMipMaps.obj) : warning LNK4099: 'DirectXTex.pdb' PDB를 'DirectXTexd.lib(DirectXTexMipMaps.obj)' 또는 'D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Engine\Resources\bin\DirectXTex.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+DirectXTexd.lib(DirectXTexTGA.obj) : warning LNK4099: 'DirectXTex.pdb' PDB를 'DirectXTexd.lib(DirectXTexTGA.obj)' 또는 'D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Engine\Resources\bin\DirectXTex.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+DirectXTexd.lib(DirectXTexUtil.obj) : warning LNK4099: 'DirectXTex.pdb' PDB를 'DirectXTexd.lib(DirectXTexUtil.obj)' 또는 'D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Engine\Resources\bin\DirectXTex.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+DirectXTexd.lib(DirectXTexWIC.obj) : warning LNK4099: 'DirectXTex.pdb' PDB를 'DirectXTexd.lib(DirectXTexWIC.obj)' 또는 'D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Engine\Resources\bin\DirectXTex.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+  Resources.vcxproj -> D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Engine\Resources\Default\..\bin\Resources.dll
+  Resources.vcxproj -> ..\bin\Resources.pdb (Full PDB)
