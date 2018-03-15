@@ -43,6 +43,14 @@ int main()
 	{
 		
 	}
+	if (g_Server.sc)
+		delete[] g_Server.sc;
+	if (g_Server.pn)
+		delete[] g_Server.pn;
+
+	if (g_Server.ps)
+		delete[] g_Server.ps;
+
 	return 0;
 
 }
