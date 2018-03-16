@@ -4,6 +4,7 @@
 #include "Protocol.h"
 #include "Coder.h"
 #include "IO.h"
+#include "Ingame.h"
 
 int InitLobby()
 {
@@ -13,14 +14,40 @@ int InitLobby()
 
 	g_OnTransFunc[REQUEST_LOBBYINFO].proc = OnRequestLobbyInfo;
 	g_OnTransFunc[REQUEST_CHANGETEAM].proc = OnRequestChangeTeam;
+	g_OnTransFunc[REQUEST_MAPCHANGE].proc = OnRequestMapChange;
+	g_OnTransFunc[REQUEST_GAMESTART].proc = OnRequestGameStart;
+	g_OnTransFunc[REQUEST_LOADINGEND].proc = OnRequestLoadingEnd;
+
+
 	return 0;
 }
 void CLooby::Initialize()
 {
-	
+	m_iLoadingCnt = 0;
 
 }
 
+
+ int OnRequestGameStart(LPCLIENTCONTEXT lpSockContext, char* cpPacket)
+{
+#ifdef _FROM_CLIENT_
+	 printf("FROM CLIENT OnRequestGameStart \n");
+#endif
+
+	 CCoder coder;
+	 char cPacket[MIN_STR];
+
+	 int iPacketSize;
+
+	 coder.SetBuf(cPacket);
+	 coder.PutChar(g_Server.m_eMapType);
+
+	 iPacketSize = coder.SetHeader(NOTIFY_GAMELOADING);
+
+	 PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
+
+	 return 0;
+}
 
 int OnRequestLobbyInfo(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 {
@@ -102,6 +129,28 @@ int OnRequestChangeTeam(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 	}
 	return 0;
 }
+int OnRequestMapChange(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
+{
+#ifdef _FROM_CLIENT_
+	printf("FROM CLIENT OnRequestMapChange \n");
+#endif
+	CCoder coder;
+	char cPacket[MIN_STR];
+	char cMap;
+	int iPacketSize;
+	coder.SetBuf(cpPacket);
+	coder.GetChar(&cMap);
+
+	g_Server.m_eMapType = eMapType(cMap);
+
+	coder.SetBuf(cPacket);
+	coder.PutChar(cMap);
+
+	iPacketSize = coder.SetHeader(NOTIFY_MAPCHANGE);
+
+	PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
+	return 0;
+}
 
 int OnNotifyUserList(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 {
@@ -130,6 +179,33 @@ int OnNotifyUserList(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 		iPacketSize = coder.SetHeader(NOTIFY_USERLIST);
 
 		PostTcpSend(1, (int*)&lpSockContext, cPacket, iPacketSize);
+	}
+	return 0;
+}
+int OnRequestLoadingEnd(LPCLIENTCONTEXT	lpSockContext, char *cpPacket)
+{
+#ifdef _FROM_CLIENT_
+	printf("FROM CLIENT OnRequestLoadingEnd \n");
+#endif
+	CCoder coder;
+	char cPacket[MIN_STR];
+	int iPacketSize;
+
+	EnterCriticalSection(&g_Server.CS);
+	g_Server.pLobby->m_iLoadingCnt++;
+	LeaveCriticalSection(&g_Server.CS);
+
+	if (g_Server.iAllUserNum <= g_Server.pLobby->m_iLoadingCnt)
+	{
+		coder.SetBuf(cPacket);
+		iPacketSize = coder.SetHeader(NOTIFY_LOADINGEND);
+
+		PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
+
+		EnterCriticalSection(&g_Server.CS);
+		g_Server.pLobby->m_iLoadingCnt = 0;
+		LeaveCriticalSection(&g_Server.CS);
+		g_Server.pIngame->GameStart();
 	}
 	return 0;
 }
