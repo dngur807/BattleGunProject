@@ -4,6 +4,8 @@
 #include "Enum.h"
 
 class CServerProcess;
+class CLooby;
+class CIngame;
 
 typedef struct
 {
@@ -12,9 +14,16 @@ typedef struct
 }EOVERLAPPED, *LPEOVERLAPPED;		//확장된 오버랩 구조체
 
 
+typedef struct	//링크드 리스트 노드 구조체
+{
+	int						prev;
+	int						next;
+}OBJECTNODE, *LPOBJECTNODE;
+
 typedef struct tagUserInfo
 {
 	TCHAR		szID[256];
+	eCharType	CharType;
 	eTeamType	eTeam;
 	int			iKill;
 	int			iDeath;
@@ -23,6 +32,7 @@ typedef struct tagUserInfo
 	int			iIndex;
 	tagUserInfo()
 	{
+		CharType = CHAR_END;
 		eTeam = TEAM_END;
 		iKill = 0;
 		iDeath = 0;
@@ -48,7 +58,7 @@ typedef struct
 	char*			pSendBegin;	// 쓰기 버퍼의 시작 위치
 	char*			pSendEnd;	// 쓰기 버퍼의 끝 위치
 
-
+	int				iSTRestCnt;
 	SOCKET			sockClnt;//실제 통신을 위한 소켓
 	CRITICAL_SECTION	CS;//쓰기 버퍼에서의 동기화를 위한 임계영역 객체이다.
 	sockaddr_in				remoteAddr;		//접속한 클라이언트의 주소를 나타낸다.
@@ -66,6 +76,8 @@ typedef struct
 }CLIENTCONTEXT, *LPCLIENTCONTEXT;
 //서버 정보 구조체이다. 
 // 서버 프로그램 전체에서 사용하는 서버 정보를 위한 전역 구조체이다.
+
+
 typedef struct 
 {
 	SOCKET					sockListener;//유저의 접속을 기다리는 리슨 소켓이다.
@@ -74,14 +86,29 @@ typedef struct
 
 	int						iMaxUserNum;// 최대 유저 수
 	int						iCurUserNum;// 현재 유저 수
+	int						iWorkerTNum; // 작업 쓰레드 개수
 
-	CLIENTCONTEXT*			pClientBegin;// 클라이언트 구조체들에 대한 시작 포인터 , 이것을 이용해서 전체 유저 탐색 가능
+	CLIENTCONTEXT*			sc;// 클라이언트 구조체들에 대한 시작 포인터 , 이것을 이용해서 전체 유저 탐색 가능
 	CServerProcess*			ps;//프로세스 시작점
+	OBJECTNODE*				pn;//플레이어들의 노드
 
+	CLooby*						pLobby;
+	CIngame*					pIngame;
 	int						iMaxProcess;
 	//게임 전용
 	CRITICAL_SECTION		 CS;
-	map<int, LPCLIENTCONTEXT>  m_mapAllUserList;
+
+	int						iUserBegin;
+	int						iUserEnd;
+	int						iAllUserNum;
+	int						iATeamNum;
+	int						iBTeamNum;
+
+	map<int, LPCLIENTCONTEXT>	m_mapAllUserList;
+	map<int, LPCLIENTCONTEXT>	m_mapATeam;
+	map<int, LPCLIENTCONTEXT>	m_mapBTeam;
+
+	eMapType					m_eMapType;
 
 }SERVERCONTEXT, *LPSERVERCONTEXT;
 
