@@ -4,7 +4,7 @@
 #include "IO.h"
 #include "ServerProcess.h"
 #include "Lobby.h"
-
+#include "Ingame.h"
 SERVERCONTEXT			g_Server;
 
 
@@ -34,6 +34,8 @@ int main()
 		return 0;
 
 	// 인게임 초기화
+	if (InitIngame() == -1)
+		return 0;
 
 	// 프로세스 초기화
 	if (InitProcess() == -1)
@@ -47,9 +49,12 @@ int main()
 		delete[] g_Server.sc;
 	if (g_Server.pn)
 		delete[] g_Server.pn;
-
 	if (g_Server.ps)
 		delete[] g_Server.ps;
+	if (g_Server.pLobby)
+		delete g_Server.pLobby;
+	if (g_Server.pIngame)
+		delete g_Server.pIngame;
 
 	return 0;
 

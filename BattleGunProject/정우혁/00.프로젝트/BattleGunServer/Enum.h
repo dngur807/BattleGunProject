@@ -13,6 +13,7 @@ enum eTeamType
 enum eMapType
 {
 	MAP_GESTALT,
+	MAP_CONVOY,
 	MAP_END,
 };
 enum eCharType
