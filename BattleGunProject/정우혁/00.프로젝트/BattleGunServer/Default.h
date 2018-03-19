@@ -19,3 +19,5 @@ using namespace std;
 #define _SEVER_DEBUG_
 #define _FROM_CLIENT_
 #define _TO_CLIENT_
+
+//#define _INGAME_MSG_CHECK_

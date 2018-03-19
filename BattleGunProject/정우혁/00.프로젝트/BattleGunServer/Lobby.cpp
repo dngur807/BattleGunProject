@@ -173,7 +173,7 @@ int OnNotifyUserList(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 		coder.SetBuf(cPacket);
 		coder.PutChar(tUserInfo.iIndex);
 		coder.PutChar(lstrlen(tUserInfo.szID) + 1);
-		coder.PutText(tUserInfo.szID, lstrlen(tUserInfo.szID) + 1);
+		coder.PutText(lpSockContext->szID, lstrlen(tUserInfo.szID) + 1);
 		coder.PutChar(tUserInfo.eTeam);
 		coder.PutChar(tUserInfo.CharType);
 		iPacketSize = coder.SetHeader(NOTIFY_USERLIST);

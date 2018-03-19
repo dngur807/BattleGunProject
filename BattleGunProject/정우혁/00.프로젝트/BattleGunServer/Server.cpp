@@ -55,7 +55,7 @@ int main()
 		delete g_Server.pLobby;
 	if (g_Server.pIngame)
 		delete g_Server.pIngame;
-
+	DeleteCriticalSection(&g_Server.CS);
 	return 0;
 
 }

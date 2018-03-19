@@ -27,6 +27,12 @@ enum eProtocolType
 					 // 인게임 프로토콜
 					 REQUEST_LOADINGEND,
 					 NOTIFY_LOADINGEND,
+
+					 REQUEST_INPUT,
+					 NOTIFY_INPUT,
+
+					 REQUEST_POSDIR,
+					 NOTIFY_POSDIR,
 };
 
 enum
