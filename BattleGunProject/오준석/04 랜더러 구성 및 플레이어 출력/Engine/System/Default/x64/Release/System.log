@@ -1,0 +1,12 @@
+﻿  Effects.cpp
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\system\code\Effects.h(4): fatal error C1083: 포함 파일을 열 수 없습니다. 'Engine_Include.h': No such file or directory
+  FontMgr.cpp
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\system\code\FontMgr.h(6): fatal error C1083: 포함 파일을 열 수 없습니다. 'Engine_Include.h': No such file or directory
+  Fonts.cpp
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\system\code\Fonts.h(3): fatal error C1083: 포함 파일을 열 수 없습니다. 'Engine_Include.h': No such file or directory
+  GraphicDev.cpp
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\system\code\GraphicDev.h(3): fatal error C1083: 포함 파일을 열 수 없습니다. 'Engine_Include.h': No such file or directory
+  Input.cpp
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\system\code\Input.h(3): fatal error C1083: 포함 파일을 열 수 없습니다. 'Engine_Include.h': No such file or directory
+  TimeMgr.cpp
+d:\00.study\00.programming\02.졸업작품\client 작업중\engine\system\code\TimeMgr.h(3): fatal error C1083: 포함 파일을 열 수 없습니다. 'Engine_Include.h': No such file or directory
