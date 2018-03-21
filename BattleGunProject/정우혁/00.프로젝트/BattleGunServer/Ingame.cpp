@@ -80,12 +80,11 @@ int OnRequestInput(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 
 int OnRequestPosDir(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 {
-
-
 	CCoder coder;
 	char szPacket[MIN_STR];
 	int	 iPacketSize;
 	char cIndex;
+	UINT iKey;
 	XMFLOAT3 vPos;
 	float AngleX;
 	float AngleY;
@@ -93,6 +92,7 @@ int OnRequestPosDir(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 
 	coder.SetBuf(cpPacket);
 	coder.GetChar(&cIndex);
+	coder.GetUInt(&iKey);
 	coder.GetXMFLOAT3(&vPos);
 	coder.GetFloat(&AngleX);
 	coder.GetFloat(&AngleY);
@@ -103,6 +103,7 @@ int OnRequestPosDir(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 #endif
 	coder.SetBuf(szPacket);
 	coder.PutChar(cIndex);
+	coder.PutUint(iKey);
 	coder.PutXMFLOAT3(&vPos);
 	coder.PutFloat(AngleX);
 	coder.PutFloat(AngleY);
