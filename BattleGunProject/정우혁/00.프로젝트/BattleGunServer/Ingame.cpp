@@ -50,12 +50,8 @@ void CIngame::GameEnd()
 	
 }
 
-
-
-
 int OnRequestInput(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 {
-
 	CCoder coder;
 	char szPacket[MIN_STR];
 	int  iPacketSize;

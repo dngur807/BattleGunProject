@@ -214,10 +214,6 @@ UINT WINAPI GameProc(void* pParam)
 		 cTeam = TEAM_B;
 	 }
 
-#ifdef _LOGLEVEL6_
-	 printf("OnRequestLogin(%d) : %s\n", lpSockContext->index, cID);
-	 printf("ID : %s\n", lpSockContext->m_tUserInfo.m_szID);
-#endif
 
 #ifdef _TO_CLIENT_
 	 printf("TO CLIENT ANSWER_LOGIN \n");
@@ -238,18 +234,19 @@ UINT WINAPI GameProc(void* pParam)
 	 PostTcpSend(1, (int *)&lpSockContext, szPacket, iSize);
 
 
-
 	  coder.SetBuf(szPacket);
 	  coder.PutChar(cIndex);
 	  coder.PutChar(IDlen);
-	  coder.PutText(szID, IDlen);
+	  coder.PutText(lpSockContext->szID, IDlen);
 	  coder.PutChar(cTeam);
 	  coder.PutChar(lpSockContext->tUserInfo.CharType);
+
 #ifdef _TO_CLIENT_
-	  printf("TO CLIENT NOTIFY_USERLIST \n");
+	  printf("TO CLIENT NOTIFY_USERLIST  %s\n" , lpSockContext->szID);
 #endif
 	  iSize = coder.SetHeader(NOTIFY_USERLIST);
 	  PostTcpSend(g_Server.iUserBegin, szPacket, iSize);
+
 
 	 return 0;
 }
