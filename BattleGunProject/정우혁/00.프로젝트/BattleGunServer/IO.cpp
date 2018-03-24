@@ -201,7 +201,7 @@ UINT WINAPI AcceptProc(void* pParam)
 		// 그러한 이유로 InitIo 부분에서 리슨 소켓과 IOCP를 연결할 때 0으로만 호출한 것이다.
 
 		// &lpEov는 오버랩 구조체의 포인터 형이다.
-		// 기것은 바로 입 , 출력에 사용되었던 오버랩 구조체의 주소를 넘겨주는 부분이다.
+		// 이것은 바로 입 , 출력에 사용되었던 오버랩 구조체의 주소를 넘겨주는 부분이다.
 		// 모든 것이 비동기로 작동하게 되므로 어떠한 작업이 일어날 때는 항상 오버랩 구조체를 사용하며
 		// 그에 따라 주소가 전달된다.
 
@@ -324,7 +324,6 @@ UINT WINAPI WorkerProc(void* pParam)
 				// 클라이언트로 부터 받은 데이터가 읽혀진 것에 대한 이벤트와 클라이언트로 보낼 데이터의 보내기가 완료된 이벤트에 대한 결과가
 				// 모두 이 작업 쓰레드로 넘어오기 때문에 발생한 이벤트가 어떤 것에 대한 결과인가를 구분하기 위하여 사용됩니다.
 
-
 				// 읽기용의 오버랩 구조체에서 신호
 				if (lpEov->mode == RECVEOVTCP)
 				{
@@ -365,7 +364,7 @@ void RecvTcpBufEnqueue(LPCLIENTCONTEXT lpSockContext, int iPacketSize)
 	// 전송 받은 패킷으로 인하여 받기 버퍼를 초과하는 지를 검사 (포인터의 뺄셈 (주소값 연산))
 	iExtra = lpSockContext -> pRecvEnd + iPacketSize - lpSockContext->RecvRingBuf - RINGBUFSIZE;
 
-
+	// 링버퍼 크기 초과했을때 앞부분으로 이동 시키기
 	if (iExtra >= 0)
 	{
 		// 받기 버퍼를 초과한다면 그 부분을 앞으로 이동
@@ -379,7 +378,7 @@ void RecvTcpBufEnqueue(LPCLIENTCONTEXT lpSockContext, int iPacketSize)
 		lpSockContext->pRecvEnd += iPacketSize;
 	}
 
-#ifdef _LOGLEVEL1_
+#ifdef _RING_BUF_
 	printf( "RecvTcpBufEnqueue : %d, %d byte\n", lpSockContext->iKey, iPacketSize );
 #endif
 }
@@ -418,7 +417,7 @@ RingBuf라는 것은 유저로부터 전송된 데이터들이 저장되는 곳입니다. 전송된 데이터를
 이 2바이트 경계에서 링 버퍼가 회전할 수 있기 때문이다. 그렇게 한 후 2바이트의 바디 크기를 나타내는 값을 얻는다.
 그런 후에 이번에는 실제 바디에 해당하는 데이터를 얻기 위한 작업을 합니다.
 
-그것이 링 버퍼가 회전하는 위치에 있는가를 검사하여 , 링 버퍼의 가장 앞에서 특정 크기를 
+그것이 링 버퍼가 회전하는 위치에 있는가를 검사하여, 링 버퍼의 가장 앞에서 특정 크기를 
 가장 뒤쪽으로 복사하는 과정을 진행한다. 그런 후에는 패킷을 읽기 위한 시작점을 사용한 수 만큼의 뒤로 옮기는 것입니다.
 */
 
@@ -499,7 +498,6 @@ void PostTcpRecv(LPCLIENTCONTEXT lpSockContext)
 	// 그 경우에서 읽어들인 데이터는 해당 구조체의 recvEnd를 시작으로 하여 전달된 바이트 수만큼이 저장됩니다.
 	// 이렇게 한 후에 이 읽어들인 데이터에 대하여 버퍼를 정하는 부분이 RecvTcpBufEnqueue입니다.
 
-
 	iResult = WSARecv(lpSockContext->sockClnt, &wsaBuf, 1, &dwReceived, &dwFlags
 		, (OVERLAPPED*)&lpSockContext->eovRecv, NULL);
 
@@ -548,6 +546,7 @@ void PostTcpSend(int ibegin, char *cpPacket, int iPacketSize)
 		// 보낼 데이터가 보내기 버퍼의 마지막을 넘어서는가를 검사
 		iExtra = lpSockContext->pSendEnd + iPacketSize - lpSockContext->SendRingBuf - RINGBUFSIZE;
 
+		//링버퍼 넘어갔으면
 		if (iExtra >= 0)
 		{
 			CopyMemory(lpSockContext->SendRingBuf, lpSockContext->SendRingBuf + RINGBUFSIZE, iExtra);
@@ -564,14 +563,12 @@ void PostTcpSend(int ibegin, char *cpPacket, int iPacketSize)
 		// 그 전송이 일부든 , 전체든 완료되었을 때 IOCP에 한번의 이벤트가 발생합니다.
 		// 그 이벤트가 발생하였을 때 그것이 모두가 전송되었다면 완료를,
 		// 그렇지 않다면 추가적인 전송을 하는 것입니다.
-		// 문제는 그러한 전송을 요구하는 , 즉 PostTcpSend 함수를 호출하는 쓰레드와
+		// 문제는 그러한 전송을 요구하는, 즉 PostTcpSend 함수를 호출하는 쓰레드와
 		// WSASend가 완료되었을 떄의 이벤트를 받는 쓰레드와 다르다는 데 있다.
 		// 이 둘이 같은 유저 구조체에 대한 조작을 하기 때문에 동기화가 반드시 필요합니다.
 
-
 		// 정확하게는 데이터를 전송하기 위한 (PostTcpSend)쓰레드는 프로세스 객체에서 할당된 쓰레드가 , 
 		// PostTcpSendRest 쓰레드는 IOCP의 작업 쓰레드에 의해서 호출된다.
-
 
 		// 보내야만 하는 전체 크기 증가
 		lpSockContext->iSTRestCnt += iPacketSize;
@@ -693,7 +690,7 @@ void PostTcpSend(int iUserNum, int iSockAddr[], char *cpPacket, int iPacketSize)
 이 함수가 호출되었을 때는 iTransferred만큼의 전송된 바이트 수를 가지며
 그 만큼을 버퍼에서 지우는 부분이 이 함수에서 최초에 하는 작업이다.
 
-그런 후에 postTcpSend함수에서 설명한 iStRectCnt에서 전송된 iTransferred 크기 만큼을
+그런 후에 postTcpSend함수에서 설명한 iStRestCnt에서 전송된 iTransferred 크기 만큼을
 빼는 과정을 임계영역 내에서 하게 된다.
 
 이렇게 전송된 후에도 보내야 할 남아있는 데이터가 존재하며 그것을
@@ -744,7 +741,8 @@ void PostTcpSendRest(LPCLIENTCONTEXT lpSockContext, int iTransferred)
 	else if (iRestSize > 0)
 	{
 		// 가능한 최대의 양을 한번에 전송하려고 계산
-		if (iRestSize > MAXPACKETSIZE) iRestSize = MAXPACKETSIZE;
+		if (iRestSize > MAXPACKETSIZE) 
+			iRestSize = MAXPACKETSIZE;
 
 		iExtra = lpSockContext->SendRingBuf + RINGBUFSIZE - lpSockContext->pSendBegin;
 
@@ -813,7 +811,7 @@ void GameBufEnqueueTcp(LPCLIENTCONTEXT lpSockContext)
 	// 이 거리라는 것이 현재 그 유저가 가지고 있는 처리되어야 할 데이터의 양입니다.
 	// 그 양이 헤더의 크기보다 작다면 처리할 것이 없다는 것을 말한다.
 
-	iRestSize = lpSockContext->pRecvEnd - lpSockContext->pRecvMark;
+	iRestSize = lpSockContext->pRecvEnd - lpSockContext->pRecvMark;// RestSize 처리해야할 데이터 양
 	if (iRestSize < 0)
 		iRestSize += RINGBUFSIZE;
 	// 패킷이 헤더크기 만큼도 전송되지 안항ㅆ음
@@ -859,7 +857,7 @@ void GameBufEnqueueTcp(LPCLIENTCONTEXT lpSockContext)
 		// 패킷 처리를 위해 프로세스 큐에 넣음
 		g_Server.ps[lpSockContext->iProcess].GameBufEnqueue(lpSockContext);
 
-#ifdef _LOGLEVEL1_
+#ifdef _RING_BUF_
 		printf( "GameBufEnqueueTcp : %d\n", lpSockContext->iKey );
 #endif
 		if (iRestSize < HEADERSIZE) 

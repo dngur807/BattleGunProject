@@ -20,4 +20,6 @@ using namespace std;
 #define _FROM_CLIENT_
 #define _TO_CLIENT_
 
+//#define _RING_BUF_	// 링버퍼 관련
+//#define _LOGLEVEL1_
 //#define _INGAME_MSG_CHECK_

@@ -20,7 +20,7 @@ int main()
 	g_Server.m_eMapType = MAP_GESTALT;
 
 	GetSystemInfo(&si);// 현재 사용 중인 컴퓨터의 시스템에 관련된 정보를 반환합니다.
-	g_Server.iWorkerTNum = min(si.dwNumberOfProcessors * 2, 16);
+	g_Server.iWorkerTNum = min(si.dwNumberOfProcessors * 2, 16); // CPU 개수만큼 워커 스레드 생성하기 위해서
 	// dwNumberOfProcessors CPU 코어 개수
 	
 
@@ -32,7 +32,6 @@ int main()
 	// 로비 초기화
 	if (InitLobby() == -1)
 		return 0;
-
 	// 인게임 초기화
 	if (InitIngame() == -1)
 		return 0;
