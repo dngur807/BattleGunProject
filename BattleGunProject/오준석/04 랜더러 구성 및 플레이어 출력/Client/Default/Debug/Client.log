@@ -1,4 +1,0 @@
-﻿  Player.cpp
-d:\00.study\00.programming\02.졸업작품\client 작업중\client\code\player.cpp(79): warning C4101: 'vecLook' :참조되지 않은 지역 변수입니다.
-  Client.vcxproj -> D:\00.Study\00.Programming\02.졸업작품\Client 작업중\Client\Default\..\bin\Client.exe
-  Client.vcxproj -> ..\bin\Client.pdb (Full PDB)
