@@ -14,7 +14,6 @@ CServerProcess::CServerProcess()
 
 CServerProcess::~CServerProcess()
 {
-	DeleteCriticalSection(&cs);
 }
 
 // 프로세스 객체는 유저들에게서 전송받은 패킷을 처리하는데 있어서 핵심이 되는 부분
@@ -105,12 +104,13 @@ void CServerProcess::Initialize(int idx)
 }
 
 // 프로세스 객체마다 생성되는 쓰레드는 실제적인 패킷의 처리를 위하여 작동합니다.
-// 즉 큐에 하나씩 쌓이는 데이터를 꺼내와서 해석, 처리하는 것입니다.
+// 즉 큐에 하나씩 쌓이는 데이터를 꺼내와서 해석 , 처리하는 것입니다.
 // (정확하게는 큐에 쌓이는 유저 구조체의 포인터를 이용하여 그 포인터에 해당하는 유저의 RingBuf의 값을 얻어오는 것이다.
 // 프로세스 객체 내에서 쓰레드는 GameProc이라는 이름으로 실행됩니다.
 // 이것은 프로세스 객체의 멤버 함수 InitProcess에서 생성되는 것입니다.
 // 큐에 쌓인 데이터를 가져오는데는 몇 가지 방법이 있을 수있다.
 // 여기서는 일정시간 간격으로 큐를 검사하여 데이터가 있으면 가져오고 그렇지 않으면 무효시키는 방법을 사용하였다.
+
 UINT WINAPI GameProc(void* pParam)
 {
 	CServerProcess*			pProcess = (CServerProcess*)pParam;
@@ -122,10 +122,10 @@ UINT WINAPI GameProc(void* pParam)
 
 	while (1)
 	{
-		// 타임 아웃이 나오도록 대기
+		//타임 아웃이 나오도록 대기
 		// 큐에 데이터가 있기 시작하면 그것이 빌 때까지 모조리 가져와서 처리한다.
 		// 100ms라는 시간은 서버의 상태에 맞게 조정할 필요가 있는 값이다.
-		// 이 방법은 보통 윈도우가 없어서 타이머를 사용할 수 없을 때, 대용으로 활용 가능한 좋은 방법이다.
+		//이 방법은 보통 윈도우가 없어서 타이머를 사용할 수 없을 때, 대용으로 활용 가능한 좋은 방법이다.
 		dwResult = WaitForSingleObject(pProcess->hGameEvent, 10);
 		if (dwResult == WAIT_OBJECT_0) 
 			break;
@@ -146,6 +146,7 @@ UINT WINAPI GameProc(void* pParam)
 			// 패킷에서 패킷 타입을 얻음
 			// 패킷의 타입별 해석을 합니다.
 			CopyMemory(&sType, cpPacket + sizeof(short), sizeof(short));
+
 			g_OnTransFunc[sType].proc(lpSockContext, cpPacket);
 		}
 
@@ -213,6 +214,10 @@ UINT WINAPI GameProc(void* pParam)
 		 cTeam = TEAM_B;
 	 }
 
+#ifdef _LOGLEVEL6_
+	 printf("OnRequestLogin(%d) : %s\n", lpSockContext->index, cID);
+	 printf("ID : %s\n", lpSockContext->m_tUserInfo.m_szID);
+#endif
 
 #ifdef _TO_CLIENT_
 	 printf("TO CLIENT ANSWER_LOGIN \n");
@@ -233,19 +238,18 @@ UINT WINAPI GameProc(void* pParam)
 	 PostTcpSend(1, (int *)&lpSockContext, szPacket, iSize);
 
 
+
 	  coder.SetBuf(szPacket);
 	  coder.PutChar(cIndex);
 	  coder.PutChar(IDlen);
-	  coder.PutText(lpSockContext->szID, IDlen);
+	  coder.PutText(szID, IDlen);
 	  coder.PutChar(cTeam);
 	  coder.PutChar(lpSockContext->tUserInfo.CharType);
-
 #ifdef _TO_CLIENT_
-	  printf("TO CLIENT NOTIFY_USERLIST  %s\n" , lpSockContext->szID);
+	  printf("TO CLIENT NOTIFY_USERLIST \n");
 #endif
 	  iSize = coder.SetHeader(NOTIFY_USERLIST);
 	  PostTcpSend(g_Server.iUserBegin, szPacket, iSize);
-
 
 	 return 0;
 }

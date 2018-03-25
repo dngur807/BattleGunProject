@@ -1,7 +1,7 @@
 #pragma once
 #define MAXTRANSFUNC		128
 #define MAXPACKETSIZE	4096
-#define RINGBUFSIZE	327680	// 2^15½Â
+#define RINGBUFSIZE	32768	// 2^15½Â
 
 #define PORTNUMBER		8000
 #define MAXUSER			8 //ÃÖ´ë À¯Àú ¼ö
