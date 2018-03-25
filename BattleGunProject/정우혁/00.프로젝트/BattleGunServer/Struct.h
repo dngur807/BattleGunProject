@@ -4,6 +4,8 @@
 #include "Enum.h"
 
 class CServerProcess;
+class CLooby;
+class CIngame;
 
 typedef struct
 {
@@ -74,7 +76,7 @@ typedef struct
 }CLIENTCONTEXT, *LPCLIENTCONTEXT;
 //서버 정보 구조체이다. 
 // 서버 프로그램 전체에서 사용하는 서버 정보를 위한 전역 구조체이다.
-class CLooby;
+
 
 typedef struct 
 {
@@ -91,7 +93,7 @@ typedef struct
 	OBJECTNODE*				pn;//플레이어들의 노드
 
 	CLooby*						pLobby;
-
+	CIngame*					pIngame;
 	int						iMaxProcess;
 	//게임 전용
 	CRITICAL_SECTION		 CS;

@@ -4,22 +4,23 @@
 #include "Protocol.h"
 #include "Coder.h"
 #include "IO.h"
+#include "Ingame.h"
 
 int InitLobby()
 {
 	g_Server.pLobby = new CLooby;
 	g_Server.pLobby->Initialize();
 
-
 	g_OnTransFunc[REQUEST_LOBBYINFO].proc = OnRequestLobbyInfo;
 	g_OnTransFunc[REQUEST_CHANGETEAM].proc = OnRequestChangeTeam;
 	g_OnTransFunc[REQUEST_MAPCHANGE].proc = OnRequestMapChange;
 	g_OnTransFunc[REQUEST_GAMESTART].proc = OnRequestGameStart;
+	g_OnTransFunc[REQUEST_LOADINGEND].proc = OnRequestLoadingEnd;
 	return 0;
 }
 void CLooby::Initialize()
 {
-	
+	m_iLoadingCnt = 0;
 
 }
 
@@ -39,9 +40,7 @@ void CLooby::Initialize()
 	 coder.PutChar(g_Server.m_eMapType);
 
 	 iPacketSize = coder.SetHeader(NOTIFY_GAMELOADING);
-
 	 PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
-
 	 return 0;
 }
 
@@ -166,15 +165,45 @@ int OnNotifyUserList(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 	for (iter; iter != iter_end; ++iter)
 	{
 		tUserInfo = iter->second->tUserInfo;
+		char szName[MIN_STR];
+		WideCharToMultiByte(CP_ACP, 0, tUserInfo.szID, -1, szName, sizeof(tUserInfo.szID), NULL , NULL);
+
 		coder.SetBuf(cPacket);
 		coder.PutChar(tUserInfo.iIndex);
 		coder.PutChar(lstrlen(tUserInfo.szID) + 1);
-		coder.PutText(tUserInfo.szID, lstrlen(tUserInfo.szID) + 1);
+		coder.PutText(szName, lstrlen(tUserInfo.szID) + 1);
 		coder.PutChar(tUserInfo.eTeam);
 		coder.PutChar(tUserInfo.CharType);
 		iPacketSize = coder.SetHeader(NOTIFY_USERLIST);
 
 		PostTcpSend(1, (int*)&lpSockContext, cPacket, iPacketSize);
+	}
+	return 0;
+}
+int OnRequestLoadingEnd(LPCLIENTCONTEXT	lpSockContext, char *cpPacket)
+{
+#ifdef _FROM_CLIENT_
+	printf("FROM CLIENT OnRequestLoadingEnd \n");
+#endif
+	CCoder coder;
+	char cPacket[MIN_STR];
+	int iPacketSize;
+
+	EnterCriticalSection(&g_Server.CS);
+	g_Server.pLobby->m_iLoadingCnt++;
+	LeaveCriticalSection(&g_Server.CS);
+
+	if (g_Server.iAllUserNum <= g_Server.pLobby->m_iLoadingCnt)
+	{
+		coder.SetBuf(cPacket);
+		iPacketSize = coder.SetHeader(NOTIFY_LOADINGEND);
+
+		PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
+
+		EnterCriticalSection(&g_Server.CS);
+		g_Server.pLobby->m_iLoadingCnt = 0;
+		LeaveCriticalSection(&g_Server.CS);
+		g_Server.pIngame->GameStart();
 	}
 	return 0;
 }

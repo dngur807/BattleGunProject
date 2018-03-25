@@ -1,48 +1,98 @@
 #pragma once
-#include "Constant.h"
+
+#define HEADERSIZE			4
+
+struct XMFLOAT3
+{
+	float x;
+	float y;
+	float z;
+};
 
 class CCoder
 {
 public:
-	inline void SetBuf(char* cpBuf)
+	inline void SetBuf(char* pBuf)
 	{
-		m_pBegin = cpBuf;
-		m_pEnd = cpBuf + HEADERSIZE;
+		pBegin = pBuf;
+		pEnd = pBuf + HEADERSIZE;
 	}
 	inline int SetHeader(short sType)
 	{
-		short iSize;
-		iSize = m_pEnd - m_pBegin - HEADERSIZE;
-		CopyMemory(m_pBegin, &iSize, sizeof(short));
-		CopyMemory(m_pBegin + sizeof(short), &sType, sizeof(short));
+		short			iSize;
+		iSize = pEnd - pBegin - HEADERSIZE;
+		CopyMemory(pBegin, &iSize, sizeof(short));
+		CopyMemory(pBegin + sizeof(short), &sType, sizeof(short));
 		return iSize + HEADERSIZE;
 	}
 	inline void GetChar(char* cpData)
 	{
-		*cpData = *m_pEnd;
-		m_pEnd++;
+		*cpData = *pEnd;
+		pEnd++;
 	}
-	inline void GetText(char* cpData, int iSize)
+	inline void GetText(char *cpData, int iSize)
 	{
-		CopyMemory(cpData, m_pEnd, iSize);
-		m_pEnd += iSize;
+		CopyMemory(cpData, pEnd, iSize);
+		pEnd += iSize;
 	}
-	inline void PutChar(char cData)
+	inline void GetUInt(unsigned int* Data)
 	{
-		*m_pEnd = cData;
-		m_pEnd++;
+		CopyMemory(Data, pEnd, sizeof(unsigned int));
+		pEnd += sizeof(unsigned int);
 	}
-	inline void PutText(char* cpData, int iSize)
+	inline void GetXMFLOAT3(XMFLOAT3* vec)
 	{
-		CopyMemory(m_pEnd, cpData, iSize);
-		m_pEnd += iSize;
+		CopyMemory(vec, pEnd, sizeof(XMFLOAT3));
+		pEnd += sizeof(XMFLOAT3);
 	}
-	inline void PutText(TCHAR* cpData, int iSize)
+	inline void GetFloat(float* data)
 	{
-		CopyMemory(m_pEnd, cpData, iSize);
-		m_pEnd += iSize;
+		CopyMemory(data, pEnd, sizeof(float));
+		pEnd += sizeof(float);
 	}
+	inline void GetInt(int* data)
+	{
+		CopyMemory(data, pEnd, sizeof(int));
+		pEnd += sizeof(int);
+	}
+	inline void GetHeader(short* sBodySize, short* sType)
+	{
+		CopyMemory(sBodySize, pBegin, sizeof(short));
+		CopyMemory(sType, pBegin + sizeof(short), sizeof(short));
+	}
+
+	inline void PutChar(char Data)
+	{
+		*pEnd = Data;
+		pEnd++;
+	}
+	inline void PutText(char *cpData, int iSize)
+	{
+		CopyMemory(pEnd, cpData, iSize);
+		pEnd += iSize;
+	}
+	inline void PutXMFLOAT3(XMFLOAT3* vec)
+	{
+		CopyMemory(pEnd, vec, sizeof(XMFLOAT3));
+		pEnd += sizeof(XMFLOAT3);
+	}
+	inline void PutUint(unsigned int iInput)
+	{
+		CopyMemory(pEnd, &iInput, sizeof(unsigned int));
+		pEnd += sizeof(unsigned int);
+	}
+	inline void PutInt(int iData)
+	{
+		CopyMemory(pEnd, &iData, sizeof(int));
+		pEnd += sizeof(int);
+	}
+	inline void PutFloat(float data)
+	{
+		CopyMemory(pEnd, &data, sizeof(float));
+		pEnd += sizeof(float);
+	}
+
 private:
-	char*			m_pBegin;
-	char*			m_pEnd;
+	char*			pBegin;
+	char*			pEnd;
 };
