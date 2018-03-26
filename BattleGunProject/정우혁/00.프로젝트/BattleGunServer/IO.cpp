@@ -246,7 +246,6 @@ UINT WINAPI AcceptProc(void* pParam)
 
 			// 링버퍼 end pointer 설정
 			RecvTcpBufEnqueue(lpClientContext , dwTransferred);
-
 			// Accept 쓰레드에서의 일을 모두 마쳤기 때문에 Worker 쓰레드로 접속된
 			// 클라이언트의 유저 구조체에 할당된 소켓을 클라이언트와의
 			// 실제 통신용 IOCP와 연결시키는 작업을 합니다.
@@ -255,7 +254,6 @@ UINT WINAPI AcceptProc(void* pParam)
 
 			CreateIoCompletionPort((HANDLE)lpClientContext->sockClnt, g_Server.hIocpWorkTcp, (DWORD)lpClientContext, 0);
 
-
 			// 바로 읽기에 대한 요청을 한다.
 			// 이것은 비동기 소켓이라는 부분에 아주 밀접한 부분입니다.
 			// 블록킹 소켓에서는 recv에서 어떠한 크기일지라도 반드시 읽은 후에 블록이 해제되는 반면에
@@ -263,7 +261,6 @@ UINT WINAPI AcceptProc(void* pParam)
 			// 물론 여기에서는 앞에서와 같이 이미 IOCP와 유저 구조체의 소켓을 연결하였기 때문에
 			// 어떠한 읽기가 발생하면 worker 쓰레드 쪽의 GetQueueCompletionStatus가 풀리는 것이다.
 			PostTcpRecv(lpClientContext);
-
 
 			// 이 함수는 클라이언트로부터 날아온 데이터를 해석합니다.
 			// 함수의 이름 그대로 요청이 왔다는 것을 쌓는 함수로

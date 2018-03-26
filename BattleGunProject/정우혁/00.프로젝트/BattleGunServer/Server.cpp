@@ -5,6 +5,7 @@
 #include "ServerProcess.h"
 #include "Lobby.h"
 #include "Ingame.h"
+
 SERVERCONTEXT			g_Server;
 
 
@@ -35,7 +36,6 @@ int main()
 	// 인게임 초기화
 	if (InitIngame() == -1)
 		return 0;
-
 	// 프로세스 초기화
 	if (InitProcess() == -1)
 		return 0;
