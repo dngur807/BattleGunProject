@@ -1,5 +1,6 @@
 #pragma once
 
+
 #define HEADERSIZE			4
 
 struct XMFLOAT3
@@ -8,7 +9,11 @@ struct XMFLOAT3
 	float y;
 	float z;
 };
-
+typedef struct tagNavMesh
+{
+	int			iOption;
+	XMFLOAT3 vecNavMesh[3];
+}NAVMESH;
 class CCoder
 {
 public:
@@ -55,6 +60,11 @@ public:
 		CopyMemory(data, pEnd, sizeof(int));
 		pEnd += sizeof(int);
 	}
+	inline void GetNavi(NAVMESH* data)
+	{
+		CopyMemory(data, pEnd, sizeof(NAVMESH));
+		pEnd += sizeof(NAVMESH);
+	}
 	inline void GetHeader(short* sBodySize, short* sType)
 	{
 		CopyMemory(sBodySize, pBegin, sizeof(short));
@@ -91,7 +101,11 @@ public:
 		CopyMemory(pEnd, &data, sizeof(float));
 		pEnd += sizeof(float);
 	}
-
+	inline void PutNaviMesh(NAVMESH data)
+	{
+		CopyMemory(pEnd, &data, sizeof(NAVMESH));
+		pEnd += sizeof(NAVMESH);
+	}
 private:
 	char*			pBegin;
 	char*			pEnd;

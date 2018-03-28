@@ -118,3 +118,6 @@ typedef struct
 	int(*proc)(LPCLIENTCONTEXT lpSockContext, char *cpPacket);
 }ONTRANSFUNC;
 
+
+
+

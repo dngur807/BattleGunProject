@@ -6,6 +6,8 @@ class CLooby
 {
 public:
 	int				m_iLoadingCnt;
+
+	bool			m_IsReadNaviMesh;
 public:
 	void Initialize();
 
@@ -15,6 +17,8 @@ public:
 	friend int OnRequestGameStart(LPCLIENTCONTEXT lpSockContext, char* cpPacket);
 	friend int OnNotifyUserList(LPCLIENTCONTEXT	lpSockContext, char *cpPacket);
 	friend int OnRequestLoadingEnd(LPCLIENTCONTEXT	lpSockContext, char *cpPacket);
+	friend int OnRequestNaviMesh(LPCLIENTCONTEXT lpSockContext, char *cpPacket);
+
 };
 
 int InitLobby();
