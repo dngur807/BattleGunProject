@@ -67,9 +67,14 @@ HRESULT CMainApp::InitApp(void)
 	m_pMyGDI->pEffect = Engine::Get_Effects()->GetBasicFX();
 	m_pMyGDI->pTech = m_pFX->GetTechniqueByName("Light1Tex");
 	NULL_CHECK_RETURN(m_pMyGDI->pTech, E_FAIL);
-
-
 	Engine::Get_Management()->SetFX(m_pFX);
+
+	//For.Default Shader ¿©±âÇÒÂ÷·Ê
+	/*pComponent = Engine::CBasicEffect::Create(m_pMyGDI, L"../Bin/CSO/Default.cso");
+	if (nullptr == pComponent)
+		return E_FAIL;
+	if (FAILED(pComponent_Mgr->Add_Component(SCENE_STATIC, L"Component_Effect_Default", pComponent)))
+		goto except;*/
 
 	m_pManagement = Engine::Get_Management();
 	hr = m_pManagement->InitManagement(m_pMyGDI);
