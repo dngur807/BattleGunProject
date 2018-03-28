@@ -23,6 +23,9 @@ enum eProtocolType
 					 REQUEST_GAMESTART,
 					 NOTIFY_GAMELOADING,
 
+					 REQUEST_NAVIMESH ,
+					 NOTIFY_NAVIMESH , 
+					 NOTIFY_NAVIMESH_SIZE,
 
 					 // 인게임 프로토콜
 					 REQUEST_LOADINGEND,
@@ -43,6 +46,9 @@ enum eProtocolType
 
 					 REQUEST_HPSYNC,
 					 NOTIFY_HPSYNC,
+
+
+
 };
 
 enum

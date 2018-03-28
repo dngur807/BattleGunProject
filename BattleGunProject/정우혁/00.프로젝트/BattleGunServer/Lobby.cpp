@@ -8,29 +8,75 @@
 
 int InitLobby()
 {
+	
 	g_Server.pLobby = new CLooby;
 	g_Server.pLobby->Initialize();
-
 	g_OnTransFunc[REQUEST_LOBBYINFO].proc = OnRequestLobbyInfo;
 	g_OnTransFunc[REQUEST_CHANGETEAM].proc = OnRequestChangeTeam;
 	g_OnTransFunc[REQUEST_MAPCHANGE].proc = OnRequestMapChange;
 	g_OnTransFunc[REQUEST_GAMESTART].proc = OnRequestGameStart;
 	g_OnTransFunc[REQUEST_LOADINGEND].proc = OnRequestLoadingEnd;
+	g_OnTransFunc[REQUEST_NAVIMESH].proc = OnRequestNaviMesh;
 	return 0;
 }
 void CLooby::Initialize()
 {
 	m_iLoadingCnt = 0;
+	m_IsReadNaviMesh = false;
 
 }
-
-
- int OnRequestGameStart(LPCLIENTCONTEXT lpSockContext, char* cpPacket)
+int OnRequestNaviMesh(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 {
+	if (g_Server.pLobby->m_IsReadNaviMesh)
+	{
 #ifdef _FROM_CLIENT_
-	 printf("FROM CLIENT OnRequestGameStart \n");
+		printf("이미 네비메쉬 로딩 완료됨\n");
+#endif
+		return 0;
+	}
+
+	g_Server.pLobby->m_IsReadNaviMesh = true;
+	DWORD dwByte = 0;
+	//여기서 읽고 데이터 전달하자
+	HANDLE hFile;
+	int isize = 0;
+//	if (g_Server.m_eMapType == MAP_GESTALT)
+	hFile = CreateFile(L"./Data/Gestalt_Navi.dat", GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	ReadFile(hFile, &isize, sizeof(int), &dwByte, NULL);
+	CCoder coder;
+	char cPacket[MAX_STR];
+	int iPacketSize;
+	coder.SetBuf(cPacket);
+	coder.PutInt(isize);
+	iPacketSize = coder.SetHeader(NOTIFY_NAVIMESH_SIZE);
+	PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
+
+#ifdef _FROM_CLIENT_
+	printf("FROM CLIENT OnRequestNaviMesh Size : %d \n " , isize);
 #endif
 
+	int i = 0;
+	while (true)
+	{
+		NAVMESH navi;
+		ReadFile(hFile, &navi, sizeof(NAVMESH), &dwByte, NULL);
+		coder.SetBuf(cPacket);
+		coder.PutNaviMesh(navi);
+		iPacketSize = coder.SetHeader(NOTIFY_NAVIMESH);
+#ifdef _FROM_CLIENT_
+		cout << ++i << "네비 정보 전달" << endl;
+#endif
+		PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
+		if (dwByte == 0)
+		{
+			break;
+		}
+	}
+
+	return 0;
+}
+ int OnRequestGameStart(LPCLIENTCONTEXT lpSockContext, char* cpPacket)
+{
 	 CCoder coder;
 	 char cPacket[MIN_STR];
 
@@ -185,6 +231,7 @@ int OnRequestLoadingEnd(LPCLIENTCONTEXT	lpSockContext, char *cpPacket)
 #ifdef _FROM_CLIENT_
 	printf("FROM CLIENT OnRequestLoadingEnd \n");
 #endif
+
 	CCoder coder;
 	char cPacket[MIN_STR];
 	int iPacketSize;
@@ -207,3 +254,4 @@ int OnRequestLoadingEnd(LPCLIENTCONTEXT	lpSockContext, char *cpPacket)
 	}
 	return 0;
 }
+
