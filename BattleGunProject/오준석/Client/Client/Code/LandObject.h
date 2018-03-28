@@ -31,6 +31,7 @@ protected:
 	CObjectObserver*		m_pObjectObserver;
 	DirectionalLight			m_DirLight;
 	Material		m_tMtrl;
+	float					m_fTime = 0.f;
 
 };
 

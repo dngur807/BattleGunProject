@@ -20,7 +20,11 @@ CCharacter::CCharacter(Engine::MYGDI* pMyGDI)
 	, m_dwNaviIndex(0)
 	, m_pMyNaviCell(NULL)
 	, m_fNaviTop(0)
+	, m_bJump(false)
 {
+	m_bDown = false;
+	m_fJumpAcc = 0.f;
+	m_fDownTime = 0.f;
 	if (g_bNetwork == false)
 		m_tCharInfo.eState = CHARSTATE_ALIVE;
 }
@@ -34,10 +38,11 @@ HRESULT CCharacter::Initialize()
 {
 	FAILED_CHECK(AddComponent());
 	m_pWeapon3rd = CWeapon3rd::Create(m_pMyGDI , &m_pInfo->m_matWorld , m_pCharMesh->FindFrame("Bone_weapon"));
-	m_pInfo->m_fScaleFactor = 20.0f;
-//	m_pInfo->m_fScaleFactor = 2.0f;
-	m_pInfo->m_vPos = XMFLOAT3(float(rand() % 500), 0.0f, float(rand() % 500));
-	m_pInfo->m_vScale = XMFLOAT3((1.0f * g_ScaleRatio) / m_pInfo->m_fScaleFactor, (1.0f * g_ScaleRatio) / m_pInfo->m_fScaleFactor, (1.0f * g_ScaleRatio) / m_pInfo->m_fScaleFactor);
+	//m_pInfo->m_fScaleFactor = 20.0f;
+	m_pInfo->m_fScaleFactor = 2.0f;
+	m_pInfo->m_vPos = XMFLOAT3(float(rand() % 500), 0.5f, float(rand() % 500));
+	//m_pInfo->m_vScale = XMFLOAT3((1.0f * g_ScaleRatio) / m_pInfo->m_fScaleFactor, (1.0f * g_ScaleRatio) / m_pInfo->m_fScaleFactor, (1.0f * g_ScaleRatio) / m_pInfo->m_fScaleFactor);
+	m_pInfo->m_vScale = XMFLOAT3(1.0f / m_pInfo->m_fScaleFactor, 1.0f / m_pInfo->m_fScaleFactor, 1.0f / m_pInfo->m_fScaleFactor);
 
 	//m_pInfo->m_vScale *= 
 	//m_pInfo->m_vScale *= g_ScaleRatio;
@@ -47,6 +52,8 @@ HRESULT CCharacter::Initialize()
 	m_pCharMesh->SetAnimationTime(1);
 
 	m_pInfo->m_fAngle[Engine::ANGLE_Y] = 90;
+
+	m_fSpeed = 300.f;
 	return S_OK;
 }
 
@@ -66,11 +73,16 @@ int CCharacter::Update()
 		m_pCharMesh->SetAnimation(m_dwCurAniIndex);
 	}
 */
-	m_dwNaviIndex = Engine::Get_NaviMgr()->FindIndex(&m_pInfo->m_vPos);
-	m_fNaviTop = Engine::Get_NaviMgr()->FindfTop(&m_pInfo->m_vPos);
 
 	if (m_pWeapon3rd)
 		m_pWeapon3rd->Update();
+
+
+	m_fTime = Engine::Get_TimeMgr()->DeltaTime();
+	
+
+
+
 
 	Engine::CGameObject::Update();//컴포넌트들 업데이트
 	return 0;
@@ -102,85 +114,129 @@ void CCharacter::ApplyInput(CHARINPUT& pInput)
 	float fTime = Engine::Get_TimeMgr()->DeltaTime();
 	bool bMove = false;
 
+	if (Engine::Get_Input()->GetDIKeyState(DIK_LSHIFT))
+	{
+		m_dwState = STATE_RUN;
+		m_fSpeed = 800;
+	}
+	else
+	{
+		m_fSpeed = 400;
+	}
+
+
 	if (CHK_KEY(pInput.iKeyMask , KEY_UP))
 	{
-		XMVECTOR VP = XMLoadFloat3(&m_pInfo->m_vPos);
-		XMVECTOR VD = XMLoadFloat3(&m_pInfo->m_vDir);
-		//VP -= VD * m_fSpeed * fTime;
-		//XMStoreFloat3(&m_pInfo->m_vPos, VP);
-
+		//XMVECTOR VP = XMLoadFloat3(&m_pInfo->m_vPos);
+		//XMVECTOR VD = XMLoadFloat3(&m_pInfo->m_vDir);
 		//이동할 방향
-		XMVECTOR vecDir = VD * m_fSpeed * fTime * -1.0f;
-		XMFLOAT3 vDir;
-		XMStoreFloat3(&vDir, vecDir);
+		//XMVECTOR vecDir = VD * m_fSpeed * fTime * -1.0f;
+		//XMFLOAT3 vDir;
+		//XMStoreFloat3(&vDir, vecDir);
 
-		m_dwNaviIndex = Engine::Get_NaviMgr()->MoveOnNaviMesh(&m_pInfo->m_vPos
-			, &vDir, m_dwNaviIndex, m_fNaviTop);
+		//m_dwNaviIndex = Engine::Get_NaviMgr()->MoveOnNaviMesh(&m_pInfo->m_vPos
+		//	, &vDir, m_dwNaviIndex, m_fNaviTop);
+
+		if (m_bJump || m_bDown || m_fNaviTop > 8.f) //1층을제외한건 걍떨어지게
+		{
+			XMVECTOR VP = XMLoadFloat3(&m_pInfo->m_vPos);
+			XMVECTOR VD = XMLoadFloat3(&m_pInfo->m_vDir);
+			VP -= VD * m_fSpeed * fTime;
+			XMStoreFloat3(&m_pInfo->m_vPos, VP);
+		}
+		else
+		{
+			m_dwNaviIndex = Engine::Get_NaviMgr()->MoveOnNaviMesh(&m_pInfo->m_vPos
+				, &XMFLOAT3(-m_pInfo->m_vDir.x* m_fSpeed*fTime, -m_pInfo->m_vDir.y* m_fSpeed*fTime, -m_pInfo->m_vDir.z* m_fSpeed*fTime)
+				, m_dwNaviIndex, m_fNaviTop);
+		}
 
 		m_dwNextAniIndex = ANI_UP;
 		bMove = true;
 	}
 	if (CHK_KEY(pInput.iKeyMask, KEY_DOWN))
 	{
-		XMVECTOR VP = XMLoadFloat3(&m_pInfo->m_vPos);
+		/*XMVECTOR VP = XMLoadFloat3(&m_pInfo->m_vPos);
 		XMVECTOR VD = XMLoadFloat3(&m_pInfo->m_vDir);
-		//VP += VD * m_fSpeed * fTime;
-		//XMStoreFloat3(&m_pInfo->m_vPos, VP);
-
-
 		XMVECTOR vecDir = VD * m_fSpeed * fTime;
 		XMFLOAT3 vDir;
 		XMStoreFloat3(&vDir, vecDir);
-
 		m_dwNaviIndex = Engine::Get_NaviMgr()->MoveOnNaviMesh(&m_pInfo->m_vPos
-			, &vDir, m_dwNaviIndex, m_fNaviTop);
-
+			, &vDir, m_dwNaviIndex, m_fNaviTop);*/
+		if (m_bJump || m_bDown || m_fTop > 8.f) //1층을제외한건 걍떨어지게   //계단높이!
+		{
+			XMVECTOR VP = XMLoadFloat3(&m_pInfo->m_vPos);
+			XMVECTOR VD = XMLoadFloat3(&m_pInfo->m_vDir);
+			VP += VD * m_fSpeed * fTime;
+			XMStoreFloat3(&m_pInfo->m_vPos, VP);
+		}
+		else
+		{
+			m_dwNaviIndex = Engine::Get_NaviMgr()->MoveOnNaviMesh(&m_pInfo->m_vPos
+				, &XMFLOAT3(m_pInfo->m_vDir.x* m_fSpeed*fTime, m_pInfo->m_vDir.y* m_fSpeed*fTime, m_pInfo->m_vDir.z* m_fSpeed*fTime)
+				, m_dwNaviIndex, m_fNaviTop);
+		}
 
 		m_dwNextAniIndex = ANI_DOWN;
 		bMove = true;
 	}
 	if (CHK_KEY(pInput.iKeyMask, KEY_RIGHT))
 	{
-		//m_pInfo->m_fAngle[Engine::ANGLE_Y] += XMConvertToRadians(-90) * fTime;
-		XMVECTOR VP = XMLoadFloat3(&m_pInfo->m_vPos);
-		XMVECTOR VD = XMLoadFloat3(&m_pInfo->m_vDir);
-		XMVECTOR vUp = XMLoadFloat3(&XMFLOAT3(m_pInfo->m_matWorld._21, m_pInfo->m_matWorld._22, m_pInfo->m_matWorld._23));
+		if (m_bJump || m_bDown || m_fTop > 8.f) //1층을제외한건 걍떨어지게   //계단높이!
+		{
+			XMVECTOR VP = XMLoadFloat3(&m_pInfo->m_vPos);
+			XMVECTOR VD = XMLoadFloat3(&m_pInfo->m_vDir);
+			XMVECTOR vUp = XMLoadFloat3(&XMFLOAT3(m_pInfo->m_matWorld._21, m_pInfo->m_matWorld._22, m_pInfo->m_matWorld._23));
 
-		XMVECTOR vRight = XMVector3Cross(vUp, VD);
-		vRight = XMVector3Normalize(vRight);
-	/*	VP -= vRight * m_fSpeed * fTime;
-		XMStoreFloat3(&m_pInfo->m_vPos, VP);*/
-
-
-		XMVECTOR vecDir = vRight * m_fSpeed * fTime * -1.0f;
-		XMFLOAT3 vDir;
-		XMStoreFloat3(&vDir, vecDir);
-
-		m_dwNaviIndex = Engine::Get_NaviMgr()->MoveOnNaviMesh(&m_pInfo->m_vPos
-			, &vDir, m_dwNaviIndex, m_fNaviTop);
-
+			XMVECTOR vRight = XMVector3Cross(vUp, VD);
+			vRight = XMVector3Normalize(vRight);
+			VP -= vRight * m_fSpeed * fTime;
+			XMStoreFloat3(&m_pInfo->m_vPos, VP);
+		}
+		else
+		{
+			XMVECTOR VP = XMLoadFloat3(&m_pInfo->m_vPos);
+			XMVECTOR VD = XMLoadFloat3(&m_pInfo->m_vDir);
+			XMVECTOR vUp = XMLoadFloat3(&XMFLOAT3(m_pInfo->m_matWorld._21, m_pInfo->m_matWorld._22, m_pInfo->m_matWorld._23));
+			XMVECTOR vRight = XMVector3Cross(vUp, VD);
+			vRight = XMVector3Normalize(vRight);
+			XMVECTOR vecDir = vRight * m_fSpeed * fTime * -1.0f;
+			XMFLOAT3 vDir;
+			XMStoreFloat3(&vDir, vecDir);
+			m_dwNaviIndex = Engine::Get_NaviMgr()->MoveOnNaviMesh(&m_pInfo->m_vPos
+				, &vDir, m_dwNaviIndex, m_fNaviTop);
+		}
 
 		m_dwNextAniIndex = ANI_RIGHT;
 		bMove = true;
 	}
-	//if (Engine::Get_Input()->GetDIKeyState(DIK_RIGHTARROW))
 	if (CHK_KEY(pInput.iKeyMask, KEY_LEFT))
 	{
-		XMVECTOR VP = XMLoadFloat3(&m_pInfo->m_vPos);
-		XMVECTOR VD = XMLoadFloat3(&m_pInfo->m_vDir);
-		XMVECTOR vUp = XMLoadFloat3(&XMFLOAT3(m_pInfo->m_matWorld._21, m_pInfo->m_matWorld._22, m_pInfo->m_matWorld._23));
+		if (m_bJump || m_bDown || m_fTop > 8.f) //1층을제외한건 걍떨어지게   //계단높이!
+		{
+			XMVECTOR VP = XMLoadFloat3(&m_pInfo->m_vPos);
+			XMVECTOR VD = XMLoadFloat3(&m_pInfo->m_vDir);
+			XMVECTOR vUp = XMLoadFloat3(&XMFLOAT3(m_pInfo->m_matWorld._21, m_pInfo->m_matWorld._22, m_pInfo->m_matWorld._23));
 
-		XMVECTOR vRight = XMVector3Cross(vUp, VD);
-		vRight = XMVector3Normalize(vRight);
-		//VP += vRight * m_fSpeed * fTime;
-		//XMStoreFloat3(&m_pInfo->m_vPos, VP);
+			XMVECTOR vRight = XMVector3Cross(vUp, VD);
+			vRight = XMVector3Normalize(vRight);
+			VP += vRight * m_fSpeed * fTime;
+			XMStoreFloat3(&m_pInfo->m_vPos, VP);
+		}
+		else
+		{
+			XMVECTOR VP = XMLoadFloat3(&m_pInfo->m_vPos);
+			XMVECTOR VD = XMLoadFloat3(&m_pInfo->m_vDir);
+			XMVECTOR vUp = XMLoadFloat3(&XMFLOAT3(m_pInfo->m_matWorld._21, m_pInfo->m_matWorld._22, m_pInfo->m_matWorld._23));
+			XMVECTOR vRight = XMVector3Cross(vUp, VD);
+			vRight = XMVector3Normalize(vRight);
+			XMVECTOR vecDir = vRight * m_fSpeed * fTime;
+			XMFLOAT3 vDir;
+			XMStoreFloat3(&vDir, vecDir);
+			m_dwNaviIndex = Engine::Get_NaviMgr()->MoveOnNaviMesh(&m_pInfo->m_vPos
+				, &vDir, m_dwNaviIndex, m_fNaviTop);
+		}
 
-		XMVECTOR vecDir = vRight * m_fSpeed * fTime;
-		XMFLOAT3 vDir;
-		XMStoreFloat3(&vDir, vecDir);
-
-		m_dwNaviIndex = Engine::Get_NaviMgr()->MoveOnNaviMesh(&m_pInfo->m_vPos
-			, &vDir, m_dwNaviIndex, m_fNaviTop);
 
 		bMove = true;
 
@@ -191,7 +247,14 @@ void CCharacter::ApplyInput(CHARINPUT& pInput)
 		if (!m_tCharInfo.bJump)
 		{ //Jump();
 		}
+
+		if (m_bPush == true)
+			return;
+		m_bPush = true;
+		m_bJump = true;
 	}
+	else
+		m_bPush = false;
 	
 	if (bMove == false)
 	{
@@ -204,7 +267,6 @@ void CCharacter::ApplyInput(CHARINPUT& pInput)
 		m_pCharMesh->SetAnimation(m_dwCurAniIndex);
 
 	}
-
 
 }
 
@@ -276,4 +338,5 @@ void CCharacter::Release()
 {
 	Engine::Safe_Delete(m_pWeapon3rd);
 }
+
 

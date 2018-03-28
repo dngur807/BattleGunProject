@@ -19,7 +19,7 @@ public:
 	virtual void Render();
 	virtual void GetDamage(int iAttackerIndex, int iDamage);
 	virtual void Shoot(void);
-
+	virtual void Jump();
 	virtual void SetDead();
 private:
 	HRESULT AddComponent();

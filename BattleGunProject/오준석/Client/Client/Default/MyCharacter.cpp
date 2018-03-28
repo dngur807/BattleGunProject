@@ -8,6 +8,7 @@
 #include "Define.h"
 #include "Struct.h"
 #include "NetMgr.h"
+#include "Export_Function.h"
 
 CMyCharacter::CMyCharacter(Engine::MYGDI* pMyGDI)
 	: CCharacter(pMyGDI)
@@ -43,6 +44,10 @@ int CMyCharacter::Update()
 {
 	CCharacter::Update();
 
+	m_dwNaviIndex = Engine::Get_NaviMgr()->FindIndex(&m_pInfo->m_vPos);
+	m_fNaviTop = Engine::Get_NaviMgr()->FindfTop(&m_pInfo->m_vPos);
+
+	Jump();
 	if (m_tCharInfo.eState != CHARSTATE_DEAD)
 	{
 		m_pSelectedWeapon->Update();
@@ -147,5 +152,50 @@ CMyCharacter* CMyCharacter::Create(Engine::MYGDI* pMyGDI)
 	if (FAILED(pChar->Initialize()))
 		Engine::Safe_Delete(pChar);
 	return pChar;
+}
+
+
+void CMyCharacter::Jump()
+{
+	if (m_bJump == true && m_bDown == false)
+	{
+		m_fJumpAcc += 6.f*m_fTime;
+		m_pInfo->m_vPos.y += -0.01f + m_fJumpAcc;
+	}
+
+	// 오준석//18-01-11// 올라가는 네비메쉬 자연스럽게 조건
+	if (m_dwNaviIndex == 2 || m_dwNaviIndex == 3
+		|| m_dwNaviIndex == 14 || m_dwNaviIndex == 17
+		|| m_dwNaviIndex == 18 || m_dwNaviIndex == 19
+		|| m_dwNaviIndex == 32 || m_dwNaviIndex == 33
+		|| m_dwNaviIndex == 31 || m_dwNaviIndex == 28) //1~2층
+	{
+		if (m_pInfo->m_vPos.y > 256.f + m_fNaviTop)
+			m_bDown = true;
+	}
+	else
+	{
+		if (m_pInfo->m_vPos.y > 10.f + m_fNaviTop)
+			m_bDown = true;
+
+	}
+
+	if (m_bDown == true)
+	{
+		m_fJumpAcc -= 2.f*m_fTime;
+
+		m_pInfo->m_vPos.y += -0.01f + m_fJumpAcc;
+
+	}
+	if (m_pInfo->m_vPos.y <= m_fNaviTop  && m_bDown == true)
+	{
+
+		m_bDown = false;
+		m_bJump = false;
+		m_fJumpAcc = 0.f;
+		m_pInfo->m_vPos.y = m_fNaviTop;
+
+	}
+
 }
 

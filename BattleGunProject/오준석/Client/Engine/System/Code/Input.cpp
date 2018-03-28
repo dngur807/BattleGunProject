@@ -89,3 +89,135 @@ void Engine::CInput::Release(void)
 	Safe_Release(m_pKeyBoard);
 	Safe_Release(m_pMouse);
 }
+
+
+
+//  한번만 눌리는지 체크
+bool    Engine::CInput::OnceMouseKeyDown(MOUSECLICK byMouseID)
+{
+	if (GetDIMouseState(byMouseID) & 0x80)
+	{
+		//  눌리는 순간 true
+		if (m_bMouseKeyDownState[byMouseID] == false)
+		{
+			m_bMouseKeyDownState[byMouseID] = true;
+			return TRUE;
+		}
+	}
+	else
+	{
+		//  떼는 순간 false
+		m_bMouseKeyDownState[byMouseID] = false;
+	}
+
+	return FALSE;
+}
+
+bool    Engine::CInput::OnceMouseKeyUp(MOUSECLICK byMouseID)
+{
+
+	const unsigned char    byKey = byMouseID;
+	int iKey = 0;
+
+	CopyMemory(&iKey, &byKey, sizeof(unsigned char));		// int 형으로 변환
+
+	if (GetDIMouseState(byMouseID) & 0x80)
+	{
+		m_bMouseKeyDownState[byMouseID] = true;
+	}
+
+	else
+	{
+		// 눌려진 순간 true가 되므로 true일때만 진입
+		if (m_bMouseKeyDownState[byMouseID] == true)
+		{
+			//  키상태를 false로 만들어 재진입 불가
+			m_bMouseKeyDownState[byMouseID] = false;
+
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+	////
+
+	//const unsigned char    byKey = byMouseID;
+	//int iKey = 0;
+
+	//CopyMemory(&iKey, &byKey, sizeof(unsigned char));		// int 형으로 변환
+
+	//if (GetDIMouseState(byKey) & 0x80)
+	//{
+	//	m_bMouseKeyDownState[iKey] = true;
+	//}
+
+	//else
+	//{
+	//	// 눌려진 순간 true가 되므로 true일때만 진입
+	//	if (m_bMouseKeyDownState[iKey] == true)
+	//	{
+	//		//  키상태를 false로 만들어 재진입 불가
+	//		m_bMouseKeyDownState[iKey] = false;
+
+	//		return TRUE;
+	//	}
+	//}
+
+	//return FALSE;
+
+
+}
+
+//  한번만 눌리는지 체크
+bool     Engine::CInput::OnceKeyDown(unsigned char byKeyID)
+{
+	const unsigned char    byKey = byKeyID;
+	int iKey = 0;
+
+	CopyMemory(&iKey, &byKey, sizeof(unsigned char));		// int 형으로 변환
+
+	if (GetDIKeyState(byKey) & 0x80)
+	{
+		//  눌리는 순간 true
+		if (m_bKeyDownState[iKey] == false)
+		{
+			m_bKeyDownState[iKey] = true;
+			return TRUE;
+		}
+	}
+	else
+	{
+		//  떼는 순간 false
+		m_bKeyDownState[iKey] = false;
+	}
+
+	return FALSE;
+}
+
+//  한번 눌렸다가 띄어지는지 체크
+bool      Engine::CInput::OnceKeyUp(unsigned char byKeyID)
+{
+	const unsigned char    byKey = byKeyID;
+	int iKey = 0;
+
+	CopyMemory(&iKey, &byKey, sizeof(unsigned char));		// int 형으로 변환
+
+	if (GetDIKeyState(byKey) & 0x80)
+	{
+		m_bKeyUpState[iKey] = true;
+	}
+
+	else
+	{
+		// 눌려진 순간 true가 되므로 true일때만 진입
+		if (m_bKeyUpState[iKey] == true)
+		{
+			//  키상태를 false로 만들어 재진입 불가
+			m_bKeyUpState[iKey] = false;
+
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}

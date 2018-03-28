@@ -31,6 +31,7 @@ public:
 	virtual HRESULT Initialize();
 	virtual int Update();
 	virtual void Render();
+	//virtual void Jump();
 
 	virtual void ApplyInput(CHARINPUT& pInput);
 
@@ -69,5 +70,15 @@ protected:
 	DWORD					m_dwNaviIndex;
 	float					m_fNaviTop;
 	Engine::CNaviCell*		m_pMyNaviCell;
+
+	//มกวม
+	bool			m_bJump;
+	bool			m_bDown;
+	float			m_fJumpAcc;
+	float           m_fSkillJumpAcc;
+	float			m_fTop;
+	DWORD			m_dwState;
+	bool			m_bPush;
+	float           m_fDownTime;
 
 };
