@@ -33,5 +33,10 @@ private:
 	float		m_fCamSpeed;
 	XMFLOAT3	m_vPrevPos;
 	bool		m_bTraceOn;
+	//카메라 줌인 최대 최소 거리 제한
+private:
+	bool							m_bMaxHighDistanceState = false;
+	bool							m_bMaxLowDistanceState = false;
+	float		m_fTimeDelta = 0.f;
 
 };

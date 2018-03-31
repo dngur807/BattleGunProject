@@ -2,7 +2,7 @@
 #include "Effects.h"
 #include "Texture.h"
 #include "ResourceMgr.h"
-
+#include "EffectBasic.h"
 
 
 Engine::CModelMesh::CModelMesh(MYGDI* pMyGDI)
@@ -175,9 +175,11 @@ void Engine::CModelMesh::Draw(const XMMATRIX& rmatWorld)
 	for (UINT i = 0; i < techDesc.Passes; ++i)
 	{
 		m_pMyGDI->pTech->GetPassByIndex(i)->Apply(0, m_pMyGDI->pContext);
-
 		m_pMyGDI->pContext->DrawIndexed(m_iNumIndices, 0, 0);
 	}
+
+	/*m_pMyGDI->pEffectBasic->Apply();
+	m_pMyGDI->pContext->DrawIndexed(m_iNumIndices, 0, 0);*/
 }
 
 void Engine::CModelMesh::Release(void)

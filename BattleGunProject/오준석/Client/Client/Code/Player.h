@@ -7,6 +7,7 @@
 
 namespace Engine
 {
+	class CManagement;
 	class CResourceMgr;
 	class CVIBuffer;
 	class CTransform;
@@ -43,8 +44,10 @@ public:
 	static CPlayer* Create(Engine::MYGDI* pMyGDI);
 
 private:
+	Engine::CManagement*    m_pManagementMgr;
 	Engine::CResourceMgr*	m_pResourceMgr;
 	Engine::CVIBuffer*		m_pBoxBuffer;
+	Engine::CEffectBasic*	m_pEffectCom = nullptr;
 
 private:
 	Engine::CStaticMesh*	m_pStaticMesh;

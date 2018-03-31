@@ -5,6 +5,7 @@
 namespace Engine
 {
 	class CBasicEffect;
+	class CEffectBasic;
 	// 맵 저장용 구조체
 	typedef struct tagNavMesh
 	{
@@ -15,9 +16,26 @@ namespace Engine
 	{
 		ID3D11Device* pDevice;
 		ID3D11DeviceContext* pContext;
+		CEffectBasic* pEffectBasic; //새로추가
 		ID3DX11EffectTechnique* pTech;
-		CBasicEffect*	pEffect;
+		CBasicEffect*	pEffect; //기존
 	}MYGDI;
+
+	struct Particle
+	{
+		XMFLOAT3 InitialPos;
+		XMFLOAT3 InitialVel;
+		XMFLOAT2 Size;
+		float Age;
+		unsigned int Type;
+	};
+
+	struct VertexWaves
+	{
+		XMFLOAT3 Pos;
+		XMFLOAT3 Normal;
+		XMFLOAT2 Tex;
+	};
 
 	typedef struct tagVertexColor
 	{

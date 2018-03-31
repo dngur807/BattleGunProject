@@ -21,6 +21,7 @@ public:
 	virtual int Update();
 	void MouseMove();
 	void SetFPSEye( const XMFLOAT4X4* matEye);
+	const XMFLOAT4X4* GetFPSEye() {return m_matEye;}
 
 public:
 	static CFpsCamera* Create(Engine::MYGDI* pMyGID);
@@ -29,5 +30,6 @@ private:
 	const Engine::CTransform*			m_pTargetInfo;
 	const XMFLOAT4X4*					m_matEye;
 	float								m_fAngle;
+	bool								m_bMouseFix;
 
 };

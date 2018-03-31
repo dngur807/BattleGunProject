@@ -26,6 +26,7 @@
 #include "Cube.h"
 #include "Engine_Include.h"
 #include "NaviMgr.h"
+#include "Waves.h"
 
 CIngame::CIngame(Engine::MYGDI* pMyGDI)
 	: Engine::CScene(pMyGDI)
@@ -103,6 +104,12 @@ HRESULT CIngame::Add_Environment_Layer(void)
 		pLayer->AddObject(L"GestaltStructure", pGameObject);
 	}
 	m_mapLayer.insert(MAPLAYER::value_type(LAYER_ENVIRONMENT, pLayer));
+
+
+	// ÆÄµµ
+	//pGameObject = CWaves::Create(m_pMyGDI);
+	//NULL_CHECK_RETURN_MSG(pGameObject, E_FAIL, L"Waves was nullptr");
+	//pLayer->AddObject(L"Waves", pGameObject);
 
 	return S_OK;
 }

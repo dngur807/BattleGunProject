@@ -53,6 +53,10 @@ void CCameraMgr::SetFPSEye(const XMFLOAT4X4* matEye)
 	m_pFpsCamera->SetFPSEye(matEye);
 }
 
+const XMFLOAT4X4* CCameraMgr::GetFPSEye()
+{
+	return m_pFpsCamera->GetFPSEye();
+}
 void CCameraMgr::SetCamera(CAMERAMODE eMode)
 {
 	switch (eMode)

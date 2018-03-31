@@ -70,6 +70,12 @@
     <Filter Include="03.Manager\01.ClsnMgr">
       <UniqueIdentifier>{8eedbd3f-1cee-4a71-b9e1-94d9fabc3b75}</UniqueIdentifier>
     </Filter>
+    <Filter Include="02.SuperClass\02.Component\02.EffectBasic">
+      <UniqueIdentifier>{61bafa24-7ac9-4bf9-9dbf-dc36436c0cfb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02.SuperClass\02.Component\02.EffectBasic\00.Normal">
+      <UniqueIdentifier>{c4a09378-61f4-4714-a9ce-e67b3167505a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Code\Component.cpp">
@@ -125,6 +131,12 @@
     </ClCompile>
     <ClCompile Include="..\Code\NaviMgr.cpp">
       <Filter>03.Manager\00.NaviMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\EffectNormal.cpp">
+      <Filter>02.SuperClass\02.Component\02.EffectBasic\00.Normal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\EffectBasic.cpp">
+      <Filter>02.SuperClass\02.Component\02.EffectBasic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -184,6 +196,12 @@
     </ClInclude>
     <ClInclude Include="..\Code\NaviMgr.h">
       <Filter>03.Manager\00.NaviMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\EffectNormal.h">
+      <Filter>02.SuperClass\02.Component\02.EffectBasic\00.Normal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\EffectBasic.h">
+      <Filter>02.SuperClass\02.Component\02.EffectBasic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

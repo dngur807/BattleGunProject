@@ -19,7 +19,7 @@ private:
 	~CManagement(void);
 
 public:
-	HRESULT InitManagement(MYGDI* pMyGDI);
+	HRESULT InitManagement(MYGDI* pMyGDI, const UINT& iMaxSceneCnt);
 	void Update(void);
 	void Render(const float& fTime);
 
@@ -37,6 +37,16 @@ public:
 	}
 	inline void SetFX(ID3DX11Effect* pFX) { m_pFX = pFX; }
 	inline ID3DX11Effect* GetFX() { return m_pFX; }
+
+	HRESULT Add_Component(const UINT& iIndex, const TCHAR* pComponentTag, CComponent* pComponent);
+	CComponent* Find_Component(const UINT& iIndex, const TCHAR* pComponentTag);
+	CComponent* Clone_Component(const UINT& iIndex, const TCHAR* pComponentTag);
+	void Release_Component(const UINT& iIndex);
+	HRESULT Reserve_ComponentMgr(const UINT& iSize);
+private:
+	map<const TCHAR*, CComponent*>*		m_pMapComponent; // 동적할당할려고.
+	typedef map<const TCHAR*, CComponent*>	MAPCOMPONENT;
+
 public:
 	template <typename T>
 	HRESULT SceneChange(T& Functor);
@@ -45,7 +55,7 @@ public:
 	void AddRenderGroup(RENDERGROUP eRenderGroup, Engine::CGameObject* pGameObject);
 	void DeleteRenderObject(Engine::CGameObject* pObject);
 	void DeleteRenderObject(RENDERGROUP eRenderGroup , Engine::CGameObject* pObject);
-private:
+public:
 	void Release(void);
 
 private:
@@ -55,6 +65,7 @@ private:
 private:
 	MYGDI*		m_pMyGDI;
 	ID3DX11Effect*	m_pFX;
+	UINT									m_iContainerSize;
 };
 
 template <typename T>

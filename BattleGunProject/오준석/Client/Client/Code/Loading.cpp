@@ -5,7 +5,8 @@
 #include "Include.h"
 #include <process.h>
 #include "GameMgr.h"
-
+#include "EffectBasic.h"
+#include "EffectNormal.h"
 CLoading::CLoading(Engine::MYGDI* pMyGDI, LOADINGID eLoadID)
 	: m_pMyGDI(pMyGDI)
 	, m_eLoadID(eLoadID)
@@ -32,6 +33,15 @@ HRESULT CLoading::InitLoading(void)
 HRESULT CLoading::IngameLoading()
 {
 	HRESULT hr = NULL;
+	cout << "로딩중..." << endl;
+
+	//Engine::CComponent*				pComponent = nullptr;
+	////For.Default Shader
+	//pComponent = Engine::CEffectNormal::Create(m_pMyGDI, L"../Bin/CSO/Default.cso");
+	//if (nullptr == pComponent)
+	//	return E_FAIL;
+	//FAILED(Engine::Get_Management()->Add_Component(SCENE_STATIC, L"Component_Effect_Default", pComponent));
+
 	lstrcpy(m_szLoadingMessage, L"버퍼 로딩중...");
 	hr = Engine::Get_ResourceMgr()->AddBuffer(m_pMyGDI
 		, RESOURCE_STAGE
@@ -149,6 +159,7 @@ HRESULT CLoading::IngameLoading()
 	
 
 	lstrcpy(m_szLoadingMessage, L"로딩완료...");
+	cout << "로딩 완료" << endl;
 #ifdef _CLIENTDEBUGING_
 	cout << "로딩 완료" << endl;
 #endif // _CLIENTDEBUGING_

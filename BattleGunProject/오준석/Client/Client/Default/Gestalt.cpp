@@ -4,6 +4,7 @@
 #include "Include.h"
 #include "StaticMesh.h"
 #include "Export_Function.h"
+#include "CameraMgr.h"
 CGestalt::CGestalt(Engine::MYGDI* pMyGDI)
 	: CLandObject(pMyGDI)
 	, m_pResourceMgr(Engine::Get_ResourceMgr())
@@ -41,15 +42,20 @@ void CGestalt::Render(void)
 	XMMATRIX matWorld;
 	matWorld = XMMatrixIdentity();
 
+	m_pMyGDI->pTech = m_pMyGDI->pEffect->GetLight0Tech();
 	m_pMyGDI->pEffect->SetTexTransform(matWorld);
 	m_pMyGDI->pEffect->SetMaterial(m_tMtrl);
 	m_pMyGDI->pEffect->SetDirLights(&m_DirLight);
 	m_pMyGDI->pEffect->SetWorld(matWorld);
 
+	
+	//g_vWorldCamera
+
 	for (int i = 0; i < 9; i++)
 	{
 		m_pP[i]->RenderMesh(XMLoadFloat4x4(&m_pInfo->m_matWorld));
 	}
+
 	m_pE[0]->RenderMesh(XMLoadFloat4x4(&m_pInfo->m_matWorld));
 	m_pE[1]->RenderMesh(XMLoadFloat4x4(&m_pInfo->m_matWorld));
 	m_pMassL->RenderMesh(XMLoadFloat4x4(&m_pInfo->m_matWorld));

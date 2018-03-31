@@ -170,7 +170,7 @@ void CMyCharacter::Jump()
 		|| m_dwNaviIndex == 32 || m_dwNaviIndex == 33
 		|| m_dwNaviIndex == 31 || m_dwNaviIndex == 28) //1~2Ãþ
 	{
-		if (m_pInfo->m_vPos.y > 256.f + m_fNaviTop)
+		if (m_pInfo->m_vPos.y > 266.f + m_fNaviTop)
 			m_bDown = true;
 	}
 	else

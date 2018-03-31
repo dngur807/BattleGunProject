@@ -85,6 +85,9 @@
     <Filter Include="01.Resource\00.Buffer\13.SphereTex">
       <UniqueIdentifier>{5fa1e687-0c34-4c28-aff9-c03603ba1041}</UniqueIdentifier>
     </Filter>
+    <Filter Include="01.Resource\00.Buffer\15.WavesTex">
+      <UniqueIdentifier>{a9560ee3-a902-49eb-a743-30be62f410f0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Code\Resources.h">

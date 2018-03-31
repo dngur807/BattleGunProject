@@ -172,6 +172,9 @@
     <Filter Include="03.Collision\02.CharCol">
       <UniqueIdentifier>{9a76695a-d4d3-4a2b-9e2b-7fa115e42a81}</UniqueIdentifier>
     </Filter>
+    <Filter Include="02.Object\01.Stage\01.LandObject\02.Waves">
+      <UniqueIdentifier>{7ff5aa48-3e3d-41ba-8952-03aae16349e6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Headers\Include.h">

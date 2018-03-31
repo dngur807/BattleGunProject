@@ -21,6 +21,8 @@
 #include "BulletMgr.h"
 #include "NaviMgr.h"
 
+
+
 CMainApp::CMainApp()
 	:m_pGraphicDev(Engine::Get_GraphicDev()),
 	m_pMyGDI(new Engine::MYGDI),
@@ -69,15 +71,21 @@ HRESULT CMainApp::InitApp(void)
 	NULL_CHECK_RETURN(m_pMyGDI->pTech, E_FAIL);
 	Engine::Get_Management()->SetFX(m_pFX);
 
-	//For.Default Shader ¿©±âÇÒÂ÷·Ê
-	/*pComponent = Engine::CBasicEffect::Create(m_pMyGDI, L"../Bin/CSO/Default.cso");
-	if (nullptr == pComponent)
-		return E_FAIL;
-	if (FAILED(pComponent_Mgr->Add_Component(SCENE_STATIC, L"Component_Effect_Default", pComponent)))
-		goto except;*/
+
+	/*Engine::CManagement*		pComponent_Mgr = Engine::CManagement::GetInstance();
+	if (nullptr == pComponent_Mgr)
+		return E_FAIL;*/
+	//pComponent_Mgr->AddRef();
+	//Engine::CComponent*				pComponent = nullptr;
+	////For.Default Shader
+	//pComponent = Engine::CEffectNormal::Create(m_pMyGDI, L"../Bin/CSO/Default.cso");
+	//if (nullptr == pComponent)
+	//	return E_FAIL;
+	//FAILED(Engine::Get_Management()->Add_Component(SCENE_STATIC, L"Component_Effect_Default", pComponent));
+	
 
 	m_pManagement = Engine::Get_Management();
-	hr = m_pManagement->InitManagement(m_pMyGDI);
+	hr = m_pManagement->InitManagement(m_pMyGDI, SCENE_END);
 	FAILED_CHECK_RETURN_MSG(hr, E_FAIL, L"Management Init Failed");
 
 	m_pResourceMgr = Engine::Get_ResourceMgr();
@@ -112,7 +120,8 @@ HRESULT CMainApp::InitApp(void)
 	m_pMyGDI->pEffect->SetView(P);
 	m_pMyGDI->pEffect->SetProj(P);
 
-	return S_OK;
+
+	//return S_OK;
 }
 
 void CMainApp::Release(void)

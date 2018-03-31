@@ -49,6 +49,8 @@ Engine::CBasicEffect::CBasicEffect(MYGDI * pMyGDI,
 	ID3DX11Effect** ppFX, const std::wstring & wstrFileName)
 	:Engine::CEffect(pMyGDI, ppFX, wstrFileName)
 {
+	LightWavesTech = m_pFX->GetTechniqueByName("WavesTech");
+
 	mfxCubeTech = m_pFX->GetTechniqueByName("CubeTech");
 	mfxColorTech = m_pFX->GetTechniqueByName("ColorTech");
 
@@ -60,6 +62,10 @@ Engine::CBasicEffect::CBasicEffect(MYGDI * pMyGDI,
 	Light1TexTech = m_pFX->GetTechniqueByName("Light1Tex");
 	Light2TexTech = m_pFX->GetTechniqueByName("Light2Tex");
 	Light3TexTech = m_pFX->GetTechniqueByName("Light3Tex");
+
+	FogColor = m_pFX->GetVariableByName("gFogColor")->AsVector();
+	FogStart = m_pFX->GetVariableByName("gFogStart")->AsScalar();
+	FogRange = m_pFX->GetVariableByName("gFogRange")->AsScalar();
 
 	World = m_pFX->GetVariableByName("gWorld")->AsMatrix();
 	View = m_pFX->GetVariableByName("gView")->AsMatrix();
@@ -139,6 +145,8 @@ void Engine::CBasicEffect::SetDirLights(const DirectionalLight* lights)
 { DirLights->SetRawValue(lights, 0, 3 * sizeof(DirectionalLight)); }
 void Engine::CBasicEffect::SetMaterial(const Material& mat)
 { Mat->SetRawValue(&mat, 0, sizeof(Material)); }
+void Engine::CBasicEffect::SetMaterial1(const Material& mat)
+{mfxMaterial->SetRawValue(&mat, 0, sizeof(Material));}
 void Engine::CBasicEffect::SetDiffuseMap(ID3D11ShaderResourceView* tex)
 { DiffuseMap->SetResource(tex); }
 void Engine::CBasicEffect::SetUseNormalMap(bool use)

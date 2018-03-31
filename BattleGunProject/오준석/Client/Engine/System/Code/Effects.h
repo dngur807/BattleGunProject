@@ -60,6 +60,7 @@ public:
 	void SetEyePosW(const DirectX::XMFLOAT3& v);
 	void SetDirLights(const DirectionalLight* lights);
 	void SetMaterial(const Material& mat);
+	void SetMaterial1(const Material& mat);
 	void SetDiffuseMap(ID3D11ShaderResourceView* tex);
 
 
@@ -83,8 +84,18 @@ public:
 	ID3DX11EffectTechnique* GetSkinnedTech(void);
 	ID3DX11EffectTechnique* GetCubeTech(void);
 	ID3DX11EffectTechnique* GetColorTech(void);
+	ID3DX11EffectTechnique* GetLight0Tech(void) { return Light0TexTech; }
+	ID3DX11EffectTechnique* GetLight1Tech(void) { return Light1TexTech; }
+	ID3DX11EffectTechnique* GetLight2Tech(void) { return Light2TexTech; }
+	ID3DX11EffectTechnique* GetLight3Tech(void) { return Light3TexTech; }
+	ID3DX11EffectTechnique* GetWavesTech(void) { return LightWavesTech; }
 	////
 	
+	//안개
+	void SetFogColor(const FXMVECTOR v) { FogColor->SetFloatVector(reinterpret_cast<const float*>(&v)); }
+	void SetFogStart(float f) { FogStart->SetFloat(f); }
+	void SetFogRange(float f) { FogRange->SetFloat(f); }
+
 	ID3DX11EffectTechnique* mfxCubeTech;
 	ID3DX11EffectTechnique* mfxColorTech;
 
@@ -97,6 +108,7 @@ public:
 	ID3DX11EffectTechnique* Light2TexTech;
 	ID3DX11EffectTechnique* Light3TexTech;
 
+	ID3DX11EffectTechnique* LightWavesTech;
 
 	// 내가 추가 
 	XMFLOAT4X4					m_matWorld;
@@ -146,6 +158,11 @@ public:
 
 	ID3DX11EffectTechnique*		 mfxNormalMapTech;
 	ID3DX11EffectTechnique*		 mfxShadowMapTech;
+
+	//
+	ID3DX11EffectVectorVariable* FogColor;
+	ID3DX11EffectScalarVariable* FogStart;
+	ID3DX11EffectScalarVariable* FogRange;
 };
 END
 #pragma endregion

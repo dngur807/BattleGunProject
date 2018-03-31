@@ -20,6 +20,7 @@ CStage::CStage(Engine::MYGDI* pMyGDI)
 CStage::~CStage(void)
 {
 	Release();
+
 }
 
 HRESULT CStage::InitScene(void)

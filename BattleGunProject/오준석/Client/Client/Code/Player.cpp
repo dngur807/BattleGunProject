@@ -16,10 +16,12 @@
 #include "Weapon3rd.h"
 #include "KeyMgr.h"
 #include "NaviCell.h"
+#include "EffectBasic.h"
 
 CPlayer::CPlayer(Engine::MYGDI* pMyGDI)
 	: CLandObject(pMyGDI)
 	, m_pResourceMgr(Engine::Get_ResourceMgr())
+	, m_pManagementMgr(Engine::Get_Management())
 	, m_iAniIndex(0)
 	, m_fSpeed(0.f)
 	, m_pSelectedWeapon(nullptr)
@@ -170,6 +172,10 @@ HRESULT CPlayer::AddComponent(void)
 	NULL_CHECK_RETURN(pComponent, E_FAIL);
 	m_mapComponent.insert(MAPCOMPONENT::value_type(L"DynamicMesh", pComponent));
 
+	//Effect
+	//m_pEffectCom = (Engine::CEffectBasic*)m_pManagementMgr->Clone_Component(SCENE_STATIC, L"Component_Effect_Default");
+	//NULL_CHECK_RETURN(pComponent, E_FAIL);
+	//m_mapComponent.insert(MAPCOMPONENT::value_type(L"Com_Effect", m_pEffectCom));
 
 	return S_OK;
 }

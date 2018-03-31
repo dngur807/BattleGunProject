@@ -12,6 +12,7 @@ CFpsCamera::CFpsCamera(Engine::MYGDI* pMyGID)
 	, m_pTargetInfo(NULL)
 	, m_fAngle(0.0f)
 	, m_matEye(NULL)
+	, m_bMouseFix(TRUE)
 {
 	
 	/*XMMATRIX I = XMMatrixIdentity();
@@ -47,10 +48,24 @@ int CFpsCamera::Update()
 	if (m_matEye == NULL)
 		return 0 ;
 
+	if (Engine::Get_Input()->OnceMouseKeyDown(Engine::CInput::DIM_RBUTTON))
+	{
+		if (m_bMouseFix == true)
+			m_bMouseFix = false;
+		else
+			m_bMouseFix = true;
+	}
+
+	if (m_bMouseFix == false)
+		return 0;
+
 	// 마우스 가운데 고정
-	POINT ptMouse = { WINCX >> 1 , WINCY >> 1 };
-	ClientToScreen(g_hWnd, &ptMouse);
-	SetCursorPos(ptMouse.x, ptMouse.y);
+	if (m_bMouseFix)
+	{
+		POINT ptMouse = { WINCX >> 1 , WINCY >> 1 };
+		ClientToScreen(g_hWnd, &ptMouse);
+		SetCursorPos(ptMouse.x, ptMouse.y);
+	}
 	MouseMove();
 
 	XMFLOAT3		vRight;

@@ -42,6 +42,7 @@ HRESULT CStaticCamera::Initialize()
 
 int CStaticCamera::Update()
 {
+	m_fTimeDelta += Engine::Get_TimeMgr()->DeltaTime();
 	POINT		ptMouse = { WINCX >> 1, WINCY >> 1 };
 	ClientToScreen(g_hWnd, &ptMouse);
 	SetCursorPos(ptMouse.x, ptMouse.y);
@@ -106,6 +107,23 @@ void CStaticCamera::MouseMove()
 		m_fAngleX += XMConvertToRadians(iDistance / 5.f);
 	}
 
+
+	//줌인 줌아웃
+	if (iDistance = Engine::Get_Input()->GetDIMouseMove(Engine::CInput::DIM_Z))
+	{
+		float fTempDistance = m_fTargetDistance + iDistance * m_fTimeDelta*0.01f;
+
+		//최대거리 제한 두기
+		if (fTempDistance >= 400)
+			return;
+
+		//다운 각도 제한 걸기
+		if (fTempDistance <= 35)
+			return;
+		//cout << fTempDistance << endl;
+
+		m_fTargetDistance += iDistance * m_fTimeDelta*0.01f;
+	}
 }
 
 CStaticCamera* CStaticCamera::Create(Engine::MYGDI* pMyGDI)

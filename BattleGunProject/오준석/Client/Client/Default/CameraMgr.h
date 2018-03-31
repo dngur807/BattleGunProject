@@ -27,6 +27,7 @@ public:
 	void SetFPSEye(const XMFLOAT4X4* matEye);
 	void SetCamera(CAMERAMODE eMode);
 	void StaticTrace(bool bOn);
+	const XMFLOAT4X4* GetFPSEye();
 private:
 	//카메라 포인터
 	CDynamicCamera*				m_pDynamicCamera;

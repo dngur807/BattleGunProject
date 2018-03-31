@@ -3,6 +3,12 @@
 
 namespace Engine
 {
+	enum RenderOptions
+	{
+		Lighting = 0,
+		Textures = 1,
+		TexturesAndFog = 2
+	};
 	enum RESOURCETYPE
 	{
 		RESOURCE_STATIC,

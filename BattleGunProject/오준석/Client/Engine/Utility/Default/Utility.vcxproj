@@ -90,13 +90,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;ENGINE_EXPORTS;_DEBUG;_WINDOWS;_USRDLL;UTILITY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\assimp\Headers\;..\Code\;$(SolutionDir)Reference\Headers\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\assimp\Headers\;..\Code\;$(SolutionDir)Reference\Headers\;../../Headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)Reference\Libraries\;$(SolutionDir)ThirdParty\assimp\lib\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>System.lib; Resources.lib; %(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>System.lib;Resources.lib;d3d11.lib;D3DCompiler.lib;dxgi.lib;dxguid.lib;Effects11d.lib;dinput8.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -157,6 +157,8 @@
     <ClInclude Include="..\Code\ClsnMgr.h" />
     <ClInclude Include="..\Code\Collision.h" />
     <ClInclude Include="..\Code\Component.h" />
+    <ClInclude Include="..\Code\EffectBasic.h" />
+    <ClInclude Include="..\Code\EffectNormal.h" />
     <ClInclude Include="..\Code\Frustum.h" />
     <ClInclude Include="..\Code\GameObject.h" />
     <ClInclude Include="..\Code\InfoSubject.h" />
@@ -177,6 +179,8 @@
     <ClCompile Include="..\Code\ClsnMgr.cpp" />
     <ClCompile Include="..\Code\Collision.cpp" />
     <ClCompile Include="..\Code\Component.cpp" />
+    <ClCompile Include="..\Code\EffectBasic.cpp" />
+    <ClCompile Include="..\Code\EffectNormal.cpp" />
     <ClCompile Include="..\Code\Frustum.cpp" />
     <ClCompile Include="..\Code\GameObject.cpp" />
     <ClCompile Include="..\Code\InfoSubject.cpp" />

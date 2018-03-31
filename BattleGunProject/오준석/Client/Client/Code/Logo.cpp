@@ -110,6 +110,7 @@ HRESULT CLogo::Add_GameLogic_Layer(void)
 
 void CLogo::Release(void)
 {
+	//Engine::CManagement::GetInstance()->Release_Component(SCENE_LOGO);
 	Engine::Safe_Delete(m_pLoading);
 }
 
