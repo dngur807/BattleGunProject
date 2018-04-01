@@ -18,6 +18,7 @@ int InitIngame()
 	g_OnTransFunc[REQUEST_GIVEDAMAGE].proc = OnRequestGiveDamage;
 	g_OnTransFunc[REQUEST_HPSYNC].proc = OnRequestHpSync;
 	g_OnTransFunc[REQUEST_DEAD].proc = OnRequestDead;
+	g_OnTransFunc[REQUEST_REVIVE].proc = OnRequestRevive;
 	return 0;
 }
 void CIngame::Initialize()
@@ -50,6 +51,32 @@ void CIngame::GameEnd()
 {
 	g_Server.pLobby->m_iLoadingCnt = 0;
 	
+}
+
+ int OnRequestRevive(LPCLIENTCONTEXT lpSockContext, char* cpPacket)
+{
+
+	 CCoder coder;
+	 char szPacket[MIN_STR];
+	 int  iPacketSize;
+	 char cIndex;
+	 XMFLOAT3 vPos;
+	 coder.SetBuf(cpPacket);
+	 coder.GetChar(&cIndex);
+	 coder.GetXMFLOAT3(&vPos);
+
+	 coder.SetBuf(szPacket);
+	 coder.PutChar(cIndex);
+	 coder.PutXMFLOAT3(&vPos);
+
+#ifdef _INGAME_MSG_CHECK_
+	 printf("OnRequestRevive  Index %d  vPos %f  %f  %f\n", (int)cIndex , vPos.x , vPos.y , vPos.z);
+#endif
+
+	 iPacketSize = coder.SetHeader(NOTIFY_REVIVE);
+	 PostTcpSend(g_Server.iUserBegin, szPacket, iPacketSize);
+
+	 return 0;
 }
 
 int OnRequestDead(LPCLIENTCONTEXT lpSockContext, char* cpPacket)
