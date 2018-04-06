@@ -4,7 +4,7 @@ class CIngame
 {
 public:
 	void Initialize();
-	void Update();
+	int Update();
 	void GameStart();
 	void GameEnd();
 public:
@@ -17,6 +17,15 @@ public:
 
 	friend int OnRequestRevive(LPCLIENTCONTEXT lpSockContext, char* cpPacket);
 
+
+	void NotifyGameResult();
+	void NotifyGameTimer(int iTimer);
+
+	void NotifyGoLobby(void);
+private:
+	float			m_fGameTime;
+	DWORD			m_dwTime;
+	eServState   m_eGameServ;
 
 };
 

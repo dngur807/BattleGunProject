@@ -50,7 +50,10 @@ enum eProtocolType
 					 REQUEST_REVIVE,
 					 NOTIFY_REVIVE,
 
+					 NOTIFY_GAMETIMER,
+					 NOTIFY_GAMERESULT,
 
+					 NOTIFY_GOLOBBY,
 
 };
 

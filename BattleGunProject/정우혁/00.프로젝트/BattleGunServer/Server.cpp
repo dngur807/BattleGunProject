@@ -42,7 +42,10 @@ int main()
 
 	while (1)
 	{
-		
+		if (g_Server.pIngame)
+		{
+			g_Server.pIngame->Update();
+		}
 	}
 	if (g_Server.sc)
 		delete[] g_Server.sc;

@@ -120,6 +120,7 @@ UINT WINAPI GameProc(void* pParam)
 	int						iPacketSize;
 	short					sType;
 
+
 	while (1)
 	{
 		// 타임 아웃이 나오도록 대기

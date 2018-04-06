@@ -19,6 +19,9 @@ int InitIngame()
 	g_OnTransFunc[REQUEST_HPSYNC].proc = OnRequestHpSync;
 	g_OnTransFunc[REQUEST_DEAD].proc = OnRequestDead;
 	g_OnTransFunc[REQUEST_REVIVE].proc = OnRequestRevive;
+
+
+
 	return 0;
 }
 void CIngame::Initialize()
@@ -34,28 +37,119 @@ void CIngame::Initialize()
 	default:
 		break;
 	}
+	
+
 }
 
-void CIngame::Update()
+int CIngame::Update()
 {
+	if (m_eGameServ != SERVSTATE_INGAME_PLAYING
+		&& m_eGameServ != SERVSTATE_GAMEEND)
+		return 0 ;
 
+	if (m_eGameServ != SERVSTATE_GAMEEND)
+	{
+		if (m_dwTime + 1000 < GetTickCount())// 1초에 한번
+		{
+			m_dwTime = GetTickCount();
+			m_fGameTime--;
+			NotifyGameTimer(m_fGameTime);
+		}
+		if (m_fGameTime < 0.0f)
+		{
+			m_eGameServ = SERVSTATE_GAMEEND;
+			m_fGameTime = -1;
+			GameEnd();
+			NotifyGameResult();
+		}
+	}
+
+	switch (m_eGameServ)
+	{
+	case SERVSTATE_GAMEEND:
+		if (m_dwTime + 3000 < GetTickCount())
+		{
+			m_dwTime = GetTickCount();
+			NotifyGoLobby();
+			m_eGameServ = SERVSTATE_INGAME_WAITING;
+			return 0;
+		}
+		break;
+	}
+	
+	return 0;
 }
 
 void CIngame::GameStart()
 {
 	Initialize();
 	//게임 프로세스 쓰레드 생성
+	m_fGameTime = 30;
+	m_dwTime = 0;
+	m_eGameServ = SERVSTATE_INGAME_PLAYING;
+
 }
 
 void CIngame::GameEnd()
 {
-	g_Server.pLobby->m_iLoadingCnt = 0;
-	
+	g_Server.pLobby->Initialize();
+	m_eGameServ = SERVSTATE_GAMEEND;
 }
+
+void CIngame::NotifyGameResult()
+{
+	CCoder coder;
+	char cPacket[MIN_STR];
+	int  iPacketSize;
+
+	coder.SetBuf(cPacket);
+	iPacketSize = coder.SetHeader(NOTIFY_GAMERESULT);
+	PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
+}
+
+
+void CIngame::NotifyGameTimer(int iTimer)
+{
+//#ifdef _INGAME_MSG_CHECK_
+//	printf("NotifyGameTimer \n");
+//#endif
+
+	CCoder coder;
+	char cPacket[MIN_STR];
+	int iPacketSize;
+
+	coder.SetBuf(cPacket);
+	coder.PutInt(iTimer);
+
+	iPacketSize = coder.SetHeader(NOTIFY_GAMETIMER);
+	PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
+}
+void CIngame::NotifyGoLobby(void)
+{
+
+#ifdef _INGAME_MSG_CHECK_
+	printf("NotifyGoLobby \n");
+#endif
+
+
+	CCoder coder;
+	char cPacket[MIN_STR];
+	int  iPacketSize;
+
+	coder.SetBuf(cPacket);
+
+	iPacketSize = coder.SetHeader(NOTIFY_GOLOBBY);
+	PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
+
+	coder.SetBuf(cPacket);
+	coder.PutChar(g_Server.iUserBegin);
+	iPacketSize = coder.SetHeader(NOTIFY_ROOMMANAGER);
+	PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
+}
+
 
  int OnRequestRevive(LPCLIENTCONTEXT lpSockContext, char* cpPacket)
 {
-
 	 CCoder coder;
 	 char szPacket[MIN_STR];
 	 int  iPacketSize;

@@ -5,6 +5,7 @@
 
 ONTRANSFUNC				g_OnTransFunc[MAXTRANSFUNC];
 
+
 /*
 여기서는 IOCP를 사용합니다. 입 / 출력 완료 포트라 부르는 IOCP는 읽거나 쓰기 중 
 그 어떠한 작업이 완료 되었을 시점에 이벤트가 발생합니다.
@@ -80,7 +81,7 @@ int InitIO()
 
 	// 리슨 소켓을 IocpAcpt에 연결합니다.
 	// 따라서 이벤트가 발생하면 바로 클라이언트가 접속한 때라는 것을 알 수 있습니다.
-	CreateIoCompletionPort((HANDLE)g_Server.sockListener, g_Server.hIocpAcpt , 0, 0);
+	CreateIoCompletionPort((HANDLE)g_Server.sockListener, g_Server.hIocpAcpt , 0 , 0);
 
 
 	// 최대 유저 수만큼의 구조체를 미리 만들어 놓는다.
@@ -120,8 +121,6 @@ int InitSocketContext(int maxUser)
 	DWORD	dwReceived;
 
 	LPCLIENTCONTEXT		lpClient = g_Server.sc;
-
-
 	// 소켓 컨텍스트 구조체 전체를 초기화합니다.
 	ZeroMemory(lpClient, sizeof(CLIENTCONTEXT) * maxUser);
 
@@ -147,7 +146,6 @@ int InitSocketContext(int maxUser)
 		// AcceptEx는 미리 소켓을 생성하여 인자로 받고 접속이 완료되면 CompletionPort객체나
 		// 인벤트 또는 콜백 함수로 알려준다.
 		// 접속시 부하를 줄일 수 있다.
-
 		itv = AcceptEx(g_Server.sockListener, lpClient[i].sockClnt, lpClient[i].pRecvEnd
 			, MAXPACKETSIZE, sizeof(sockaddr_in) + 16, sizeof(sockaddr_in) + 16
 			, &dwReceived, (OVERLAPPED*)&lpClient[i].eovRecv);
@@ -340,7 +338,7 @@ UINT WINAPI WorkerProc(void* pParam)
 					// 이벤트가 WSASend에 의하여 발생한 것이라면 오직 한가지 PostTcpSendRest 함수만을 호출합니다.
 					// 그 함수는 보내기 버퍼에 쌓인 나머지 데이터들을 전송하는 역할을 합니다.
 					// 가장 최초에 WSASend를 호출한다면 그것은 보내기를 원했던 만큼의 크기의 전송이 완료 되거나
-					// TCP의 특성으로 일부만 전송되었을 수 있는 것입니다.
+					// TCP의 특성으로 일부만 전송되었을 수 있는 것입0.니다.
 					// 그러한 이유로 일단 전송에 관한 입 / 출력이 완료되면 보내기를 원하는 바이트 수와 보내진 바이트 수를
 					// 검사하는 항목이 필요하며 그것이 바로 postSnedRest함수다.
 
@@ -499,7 +497,8 @@ void PostTcpRecv(LPCLIENTCONTEXT lpSockContext)
 		, (OVERLAPPED*)&lpSockContext->eovRecv, NULL);
 
 	// PENDING을 제외한 나머지 에러
-	if (iResult == SOCKET_ERROR && WSAGetLastError() != ERROR_IO_PENDING)
+	if (iResult == SOCKET_ERROR && 
+		WSAGetLastError() != ERROR_IO_PENDING)
 	{
 		printf("***** PostTcpRecv error : %d, %d\n", lpSockContext->iKey, WSAGetLastError());
 	}
@@ -687,7 +686,7 @@ void PostTcpSend(int iUserNum, int iSockAddr[], char *cpPacket, int iPacketSize)
 이 함수가 호출되었을 때는 iTransferred만큼의 전송된 바이트 수를 가지며
 그 만큼을 버퍼에서 지우는 부분이 이 함수에서 최초에 하는 작업이다.
 
-그런 후에 postTcpSend함수에서 설명한 iStRestCnt에서 전송된 iTransferred 크기 만큼을
+그런 후에 postTcpSend 함수에서 설명한 iStRestCnt에서 전송된 iTransferred 크기 만큼을
 빼는 과정을 임계영역 내에서 하게 된다.
 
 이렇게 전송된 후에도 보내야 할 남아있는 데이터가 존재하며 그것을
@@ -797,6 +796,7 @@ mark에 의하여 그 위치를 표시합니다.
 하나는 아직 덜 완성된 패킷에 대한 전송을 받는 것이며
 또 다른 하나는 프로세스 객체에 처리시킨 두 개의 패킷이 처리된다.
 */
+
 void GameBufEnqueueTcp(LPCLIENTCONTEXT lpSockContext)
 {
 	short			iBodySize;

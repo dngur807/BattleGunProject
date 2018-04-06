@@ -63,16 +63,19 @@ int OnRequestNaviMesh(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 		coder.SetBuf(cPacket);
 		coder.PutNaviMesh(navi);
 		iPacketSize = coder.SetHeader(NOTIFY_NAVIMESH);
-#ifdef _FROM_CLIENT_
-		cout << ++i << "네비 정보 전달" << endl;
-#endif
+		cout << ++i << "네비 정보 전달" << endl;// 이거 빼면 뻑나네 ... 뭐지
+
+
+//#ifdef _FROM_CLIENT_
+//		cout << ++i << "네비 정보 전달" << endl;
+//#endif
 		PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
 		if (dwByte == 0)
 		{
 			break;
 		}
 	}
-
+	CloseHandle(hFile);
 	return 0;
 }
  int OnRequestGameStart(LPCLIENTCONTEXT lpSockContext, char* cpPacket)
