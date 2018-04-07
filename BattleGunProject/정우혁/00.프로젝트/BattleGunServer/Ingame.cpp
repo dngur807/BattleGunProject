@@ -12,7 +12,7 @@ int InitIngame()
 	g_Server.pIngame = new CIngame;//게임 시작할때 초기화
 	g_Server.pIngame->Initialize();
 
-	//핸들러
+	// 핸들러 
 	g_OnTransFunc[REQUEST_POSDIR].proc = OnRequestPosDir;
 	g_OnTransFunc[REQUEST_INPUT].proc = OnRequestInput;
 	g_OnTransFunc[REQUEST_GIVEDAMAGE].proc = OnRequestGiveDamage;
@@ -84,7 +84,7 @@ void CIngame::GameStart()
 {
 	Initialize();
 	//게임 프로세스 쓰레드 생성
-	m_fGameTime = 30;
+	m_fGameTime = 300;
 	m_dwTime = 0;
 	m_eGameServ = SERVSTATE_INGAME_PLAYING;
 
