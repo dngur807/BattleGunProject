@@ -15,13 +15,10 @@ int InitIngame()
 	// 핸들러 
 	g_OnTransFunc[REQUEST_POSDIR].proc = OnRequestPosDir;
 	g_OnTransFunc[REQUEST_INPUT].proc = OnRequestInput;
-	g_OnTransFunc[REQUEST_GIVEDAMAGE].proc = OnRequestGiveDamage;
-	g_OnTransFunc[REQUEST_HPSYNC].proc = OnRequestHpSync;
-	g_OnTransFunc[REQUEST_DEAD].proc = OnRequestDead;
-	g_OnTransFunc[REQUEST_REVIVE].proc = OnRequestRevive;
-
-
-
+	g_OnTransFunc[REQUEST_GIVEDAMAGE].proc = OnRequestGiveDamage; // 데미지
+	g_OnTransFunc[REQUEST_HPSYNC].proc = OnRequestHpSync; // 동기화
+	g_OnTransFunc[REQUEST_DEAD].proc = OnRequestDead; // 죽었음
+	g_OnTransFunc[REQUEST_REVIVE].proc = OnRequestRevive; // 부활
 	return 0;
 }
 void CIngame::Initialize()
