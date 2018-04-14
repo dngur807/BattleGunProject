@@ -10,6 +10,8 @@
 #include "Text.h"
 #include "Me.h"
 #include "GameMgr.h"
+#include "Character.h"
+#include "Transform.h"
 CUI_Hud::CUI_Hud(Engine::MYGDI* pMyGDI)
 	: CUI(pMyGDI)
 	, m_pMyCharacter(NULL)
@@ -26,6 +28,7 @@ CUI_Hud::~CUI_Hud()
 }
 
 HRESULT CUI_Hud::Initialize()
+
 {
 	FAILED_CHECK(AddComponent());
 
@@ -50,6 +53,7 @@ int CUI_Hud::Update()
 			m_fHitAlpha = 0.0f;
 		}
 	}
+	
 
 	return 0;
 }
@@ -62,12 +66,16 @@ void CUI_Hud::Render()
 	CCameraMgr::GetInstance()->GetTransFormView(&matOldView);
 	CCameraMgr::GetInstance()->GetTransFormProj(&matOldProj);
 
+
+
 	//여기부터 UI 출력하자
 	CCameraMgr::GetInstance()->SetTransFormView(&m_matView);
 	CCameraMgr::GetInstance()->SetTransFormProj(&m_matProj);
 
+	MakeNameTag();
 
 	RenderHUD();
+	RenderNameTag();
 	RenderCrossHair();
 	RenderText();
 
@@ -170,6 +178,10 @@ HRESULT CUI_Hud::AddComponent()
 	m_pHPText->SetSize(30);
 	m_pHPText->SetPos(220, 650);
 
+	for (int i = 0; i < 8; ++i)
+	{
+		m_tNameTag[i].m_pText = CText::Create(m_pMyGDI, L"Font_koverwatch", 15);
+	}
 	return S_OK;
 }
 
@@ -269,6 +281,121 @@ void CUI_Hud::RenderResult()
 		CCameraMgr::GetInstance()->SetTransFormView(&m_matView);
 		m_pDefeatTex->Render(0, 0);
 		m_pBuffer->Render(m_matWorld);
+	}
+}
+
+void CUI_Hud::RenderNameTag()
+{
+	DWORD dColor;
+	XMMATRIX matTrans;
+	XMMATRIX matScale;
+	XMMATRIX matWorld;
+	XMMATRIX matRot;
+	for (int i = 0; i < CUserMgr::GetInstance()->GetUserList()->size(); i++)
+	{
+		/*if (m_tNameTag[i].m_bActive == false || m_tNameTag[i].m_bScreen == false)
+			continue;*/
+		CUser* pUser = (*CUserMgr::GetInstance()->GetUserList())[i];
+
+		if (pUser == NULL)
+			continue;
+
+		if (m_tNameTag[i].m_bTeam)
+		{
+			dColor = D3DCOLOR_ARGB(255 , 0, 200, 255);
+		}
+		else
+		{
+			/*if (m_tNameTag[i].m_bShow == false)
+				continue;*/
+
+			dColor = D3DCOLOR_ARGB(255 , 255, 0, 0);
+		}
+
+
+		lstrcpy(m_szText, pUser->GetUserInfo().szID);
+		
+
+		//폰트 랜더
+		if (m_tNameTag[i].m_pText)
+		{
+			m_tNameTag[i].m_pText->SetColor(dColor);
+			m_tNameTag[i].m_pText->SetSize(20);
+			m_tNameTag[i].m_pText->SetPos(m_tNameTag[i].vPos.x, m_tNameTag[i].vPos.y );
+			m_tNameTag[i].m_pText->SetText(m_szText);
+			m_tNameTag[i].m_pText->Render();
+		}
+
+	/*	matScale = XMMatrixScaling(0.3f, 1.0f, 1.0f);
+		matTrans = XMMatrixTranslation(m_tNameTag[i].vPos.x, m_tNameTag[i].vPos.y + 20, 0.0f);
+		matWorld = matScale * matTrans;
+
+		XMStoreFloat4x4(&m_matWorld, matWorld);
+		m_pHealthBackTex->Render(0, 0);
+		m_pBuffer->Render(m_matWorld);
+
+
+		RECT rt = { 0, 0, int((pUser->GetCharacter()->GetCharInfo().iHp / float(pUser->GetCharacter()->GetCharInfo().iMaxHp)) * 395.f), 16 };
+
+		matScale = XMMatrixScaling(0.3f, 1.0f, 1.0f);
+		matTrans = XMMatrixTranslation(m_tNameTag[i].vPos.x, m_tNameTag[i].vPos.y + 20, 0.0f);
+		matWorld = matScale * matTrans;
+
+		XMStoreFloat4x4(&m_matWorld, matWorld);
+		m_pHealthFrontTex->Render(0 , 0);
+		m_pBuffer->Render(m_matWorld);*/
+
+	
+	}
+}
+
+void CUI_Hud::MakeNameTag()
+{
+	auto iter = CUserMgr::GetInstance()->GetUserList()->begin();
+	auto iter_end = CUserMgr::GetInstance()->GetUserList()->end();
+
+	int	iTeam = m_pMyCharacter->GetCharInfo().iTeam;
+	CCharacter* pCharacter = NULL;
+	int iIndex = -1;
+
+	for (iter; iter != iter_end; ++iter)
+	{
+		pCharacter = iter->second->GetCharacter();
+		iIndex = pCharacter->GetCharInfo().iUserIndex;
+
+		if (iIndex == g_iIndex)
+			continue;
+		if (pCharacter->GetCharInfo().iTeam == iTeam)
+			m_tNameTag[iIndex].m_bTeam = true;
+		else
+			m_tNameTag[iIndex].m_bTeam = false;
+		
+
+		XMFLOAT3 vPos = pCharacter->GetInfo()->m_vPos;
+		vPos.y += 110;
+	
+		m_tNameTag[iIndex].vPos = GetScreenPos(vPos
+			, matOldView
+			, matOldProj);
+		m_tNameTag[iIndex].vPos.z = 0.0f;
+		if (pCharacter->GetCharInfo().iHp <=  0)
+		{
+			m_tNameTag[iIndex].m_bScreen = false;
+		}
+		if (m_tNameTag[iIndex].vPos.x > 0.f
+			&& m_tNameTag[iIndex].vPos.x < 1280.f
+			&& m_tNameTag[iIndex].vPos.y > 0.f
+			&& m_tNameTag[iIndex].vPos.y < 720.f)
+		{
+			m_tNameTag[iIndex].m_bScreen = true;
+		}
+		else
+		{
+			m_tNameTag[iIndex].m_bScreen = false;
+			continue;
+		}
+
+
 	}
 }
 
