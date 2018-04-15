@@ -291,61 +291,61 @@ void CUI_Hud::RenderNameTag()
 	XMMATRIX matScale;
 	XMMATRIX matWorld;
 	XMMATRIX matRot;
+	XMFLOAT4X4 mat4x4Wolrd;
 	for (int i = 0; i < CUserMgr::GetInstance()->GetUserList()->size(); i++)
 	{
-		/*if (m_tNameTag[i].m_bActive == false || m_tNameTag[i].m_bScreen == false)
+		if (m_tNameTag[i].m_bActive == false || m_tNameTag[i].m_bScreen == false)
+			continue;
+		/*if ( m_tNameTag[i].m_bScreen == false)
 			continue;*/
 		CUser* pUser = (*CUserMgr::GetInstance()->GetUserList())[i];
 
-		if (pUser == NULL)
+		if (pUser == NULL )
 			continue;
+
+		if (g_iIndex == pUser->GetUserInfo().iIndex)
+			continue;
+
+		CCharacter* pCharacter = pUser->GetCharacter();
 
 		if (m_tNameTag[i].m_bTeam)
 		{
-			dColor = D3DCOLOR_ARGB(255 , 0, 200, 255);
+			dColor = D3DCOLOR_ARGB(255 , 255, 0, 0);
 		}
 		else
 		{
-			/*if (m_tNameTag[i].m_bShow == false)
-				continue;*/
-
-			dColor = D3DCOLOR_ARGB(255 , 255, 0, 0);
+			dColor = D3DCOLOR_ARGB(255 , 0, 0, 255);
 		}
-
-
 		lstrcpy(m_szText, pUser->GetUserInfo().szID);
-		
-
+	
 		//폰트 랜더
 		if (m_tNameTag[i].m_pText)
 		{
 			m_tNameTag[i].m_pText->SetColor(dColor);
 			m_tNameTag[i].m_pText->SetSize(20);
-			m_tNameTag[i].m_pText->SetPos(m_tNameTag[i].vPos.x, m_tNameTag[i].vPos.y );
+			m_tNameTag[i].m_pText->SetPos(m_tNameTag[i].vPos.x - 10, m_tNameTag[i].vPos.y + 20);
 			m_tNameTag[i].m_pText->SetText(m_szText);
 			m_tNameTag[i].m_pText->Render();
 		}
 
-	/*	matScale = XMMatrixScaling(0.3f, 1.0f, 1.0f);
-		matTrans = XMMatrixTranslation(m_tNameTag[i].vPos.x, m_tNameTag[i].vPos.y + 20, 0.0f);
-		matWorld = matScale * matTrans;
+		float fScaleX = 395.0f;
 
-		XMStoreFloat4x4(&m_matWorld, matWorld);
+		m_matView._11 = fScaleX * 0.3f;
+		m_matView._22 = 16.f * 1.0f;
+		m_matView._41 = -WINCX / 2 + m_tNameTag[i].vPos.x;
+		m_matView._42 = +WINCY / 2 - m_tNameTag[i].vPos.y  - 50;
+
+		CCameraMgr::GetInstance()->SetTransFormView(&m_matView);
 		m_pHealthBackTex->Render(0, 0);
 		m_pBuffer->Render(m_matWorld);
 
 
-		RECT rt = { 0, 0, int((pUser->GetCharacter()->GetCharInfo().iHp / float(pUser->GetCharacter()->GetCharInfo().iMaxHp)) * 395.f), 16 };
-
-		matScale = XMMatrixScaling(0.3f, 1.0f, 1.0f);
-		matTrans = XMMatrixTranslation(m_tNameTag[i].vPos.x, m_tNameTag[i].vPos.y + 20, 0.0f);
-		matWorld = matScale * matTrans;
-
-		XMStoreFloat4x4(&m_matWorld, matWorld);
-		m_pHealthFrontTex->Render(0 , 0);
-		m_pBuffer->Render(m_matWorld);*/
-
 	
+		m_matView._11 = ((float)pCharacter->GetCharInfo().iHp / pCharacter->GetCharInfo().iMaxHp) * fScaleX * 0.3f;
+		m_matView._41 = -WINCX / 2 + m_tNameTag[i].vPos.x - (1 - (float)pCharacter->GetCharInfo().iHp / pCharacter->GetCharInfo().iMaxHp) * (205) / 3.5f;
+		CCameraMgr::GetInstance()->SetTransFormView(&m_matView);
+		m_pHealthFrontTex->Render(0, 0);
+		m_pBuffer->Render(m_matWorld);
 	}
 }
 
@@ -365,8 +365,11 @@ void CUI_Hud::MakeNameTag()
 
 		if (iIndex == g_iIndex)
 			continue;
+
 		if (pCharacter->GetCharInfo().iTeam == iTeam)
+		{
 			m_tNameTag[iIndex].m_bTeam = true;
+		}
 		else
 			m_tNameTag[iIndex].m_bTeam = false;
 		
@@ -395,6 +398,26 @@ void CUI_Hud::MakeNameTag()
 			continue;
 		}
 
+		XMVECTOR vDir = XMLoadFloat3(&pCharacter->GetInfo()->m_vPos) - XMLoadFloat3(&m_pMyCharacter->GetInfo()->m_vPos);
+		XMFLOAT3 vecDist;
+		XMStoreFloat3(&vecDist , XMVector3Length(vDir) );
+		m_tNameTag[iIndex].fDist = vecDist.x;
+
+		vDir = XMVector3Normalize(vDir);
+
+		XMVECTOR vDot = XMVector3Dot(XMLoadFloat3(&m_pMyCharacter->GetInfo()->m_vDir), vDir);
+
+		XMFLOAT3 vecDot;
+		XMStoreFloat3(&vecDot, vDot);
+
+		if (acosf(vecDot.x) <= 3.141592 / 2.f)
+		{
+
+			m_tNameTag[iIndex].m_bScreen = false;
+			continue;
+		}
+
+		m_tNameTag[iIndex].m_bShow = true;
 
 	}
 }
