@@ -294,6 +294,9 @@ void CUI_Hud::RenderNameTag()
 	XMFLOAT4X4 mat4x4Wolrd;
 	for (int i = 0; i < CUserMgr::GetInstance()->GetUserList()->size(); i++)
 	{
+		//if (m_tNameTag[i].fDist > 500.0f)
+			//continue;
+
 		if (m_tNameTag[i].m_bActive == false || m_tNameTag[i].m_bScreen == false)
 			continue;
 		/*if ( m_tNameTag[i].m_bScreen == false)
@@ -318,22 +321,24 @@ void CUI_Hud::RenderNameTag()
 		}
 		lstrcpy(m_szText, pUser->GetUserInfo().szID);
 	
+	
 		//폰트 랜더
 		if (m_tNameTag[i].m_pText)
 		{
 			m_tNameTag[i].m_pText->SetColor(dColor);
 			m_tNameTag[i].m_pText->SetSize(20);
-			m_tNameTag[i].m_pText->SetPos(m_tNameTag[i].vPos.x - 10, m_tNameTag[i].vPos.y + 20);
+			m_tNameTag[i].m_pText->SetPos(m_tNameTag[i].vPos.x - 10, m_tNameTag[i].vPos.y + 20 );
 			m_tNameTag[i].m_pText->SetText(m_szText);
 			m_tNameTag[i].m_pText->Render();
 		}
 
 		float fScaleX = 395.0f;
 
+	
 		m_matView._11 = fScaleX * 0.3f;
 		m_matView._22 = 16.f * 1.0f;
 		m_matView._41 = -WINCX / 2 + m_tNameTag[i].vPos.x;
-		m_matView._42 = +WINCY / 2 - m_tNameTag[i].vPos.y  - 50;
+		m_matView._42 = +WINCY / 2 - m_tNameTag[i].vPos.y  - 50 ;
 
 		CCameraMgr::GetInstance()->SetTransFormView(&m_matView);
 		m_pHealthBackTex->Render(0, 0);
@@ -373,13 +378,19 @@ void CUI_Hud::MakeNameTag()
 		else
 			m_tNameTag[iIndex].m_bTeam = false;
 		
+		XMVECTOR vDir = XMLoadFloat3(&pCharacter->GetInfo()->m_vPos) - XMLoadFloat3(&m_pMyCharacter->GetInfo()->m_vPos);
+		XMFLOAT3 vecDist;
+		XMStoreFloat3(&vecDist, XMVector3Length(vDir));
+		m_tNameTag[iIndex].fDist = vecDist.x;
+
 
 		XMFLOAT3 vPos = pCharacter->GetInfo()->m_vPos;
-		vPos.y += 110;
+		vPos.y += 110 + m_tNameTag[iIndex].fDist / 20;
 	
 		m_tNameTag[iIndex].vPos = GetScreenPos(vPos
 			, matOldView
 			, matOldProj);
+
 		m_tNameTag[iIndex].vPos.z = 0.0f;
 		if (pCharacter->GetCharInfo().iHp <=  0)
 		{
@@ -398,10 +409,7 @@ void CUI_Hud::MakeNameTag()
 			continue;
 		}
 
-		XMVECTOR vDir = XMLoadFloat3(&pCharacter->GetInfo()->m_vPos) - XMLoadFloat3(&m_pMyCharacter->GetInfo()->m_vPos);
-		XMFLOAT3 vecDist;
-		XMStoreFloat3(&vecDist , XMVector3Length(vDir) );
-		m_tNameTag[iIndex].fDist = vecDist.x;
+		
 
 		vDir = XMVector3Normalize(vDir);
 
