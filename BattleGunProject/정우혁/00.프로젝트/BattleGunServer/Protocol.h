@@ -55,6 +55,9 @@ enum eProtocolType
 
 					 NOTIFY_GOLOBBY,
 
+					 REQUEST_CHANGEWEAPON,
+					 NOTIFY_CHANGEWEAPON
+
 };
 
 enum

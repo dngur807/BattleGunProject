@@ -16,7 +16,7 @@ public:
 	friend int OnRequestDead(LPCLIENTCONTEXT lpSockContext, char* cpPacket);
 
 	friend int OnRequestRevive(LPCLIENTCONTEXT lpSockContext, char* cpPacket);
-
+	friend int OnRequestChangeWeapon(LPCLIENTCONTEXT lpSockContext, char* cpPacket);
 
 	void NotifyGameResult();
 	void NotifyGameTimer(int iTimer);
