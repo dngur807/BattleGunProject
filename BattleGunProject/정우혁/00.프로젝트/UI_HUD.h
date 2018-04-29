@@ -29,7 +29,8 @@ private:
 	void RenderCrossHair();
 	void RenderText();
 	void RenderResult();
-
+	void RenderNameTag();
+	void MakeNameTag();
 public:
 	static CUI_Hud* Create(Engine::MYGDI* pMyGDI);
 
@@ -59,4 +60,6 @@ private:
 	bool					m_bHit;
 	bool					m_IsVictory;
 	float					m_fHitAlpha;
+	TCHAR					m_szText[MAX_STR];
+	NAMETAG					m_tNameTag[8];
 };

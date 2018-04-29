@@ -15,10 +15,13 @@ int InitIngame()
 	// 핸들러 
 	g_OnTransFunc[REQUEST_POSDIR].proc = OnRequestPosDir;
 	g_OnTransFunc[REQUEST_INPUT].proc = OnRequestInput;
-	g_OnTransFunc[REQUEST_GIVEDAMAGE].proc = OnRequestGiveDamage; // 데미지
-	g_OnTransFunc[REQUEST_HPSYNC].proc = OnRequestHpSync; // 동기화
-	g_OnTransFunc[REQUEST_DEAD].proc = OnRequestDead; // 죽었음
-	g_OnTransFunc[REQUEST_REVIVE].proc = OnRequestRevive; // 부활
+	g_OnTransFunc[REQUEST_GIVEDAMAGE].proc = OnRequestGiveDamage; 
+	g_OnTransFunc[REQUEST_HPSYNC].proc = OnRequestHpSync; 
+	g_OnTransFunc[REQUEST_DEAD].proc = OnRequestDead;
+	g_OnTransFunc[REQUEST_REVIVE].proc = OnRequestRevive; 
+	g_OnTransFunc[REQUEST_CHANGEWEAPON].proc = OnRequestChangeWeapon;
+
+
 	return 0;
 }
 void CIngame::Initialize()
@@ -81,7 +84,7 @@ void CIngame::GameStart()
 {
 	Initialize();
 	//게임 프로세스 쓰레드 생성
-	m_fGameTime = 300;
+	m_fGameTime = 60;
 	m_dwTime = 0;
 	m_eGameServ = SERVSTATE_INGAME_PLAYING;
 
@@ -92,6 +95,8 @@ void CIngame::GameEnd()
 	g_Server.pLobby->Initialize();
 	m_eGameServ = SERVSTATE_GAMEEND;
 }
+
+
 
 void CIngame::NotifyGameResult()
 {
@@ -180,6 +185,31 @@ int OnRequestDead(LPCLIENTCONTEXT lpSockContext, char* cpPacket)
 	printf("OnRequestDead \n");
 #endif
 	PostTcpSend(g_Server.iUserBegin, cpPacket, sType + HEADERSIZE);
+	return 0;
+}
+
+int OnRequestChangeWeapon(LPCLIENTCONTEXT lpSockContext, char* cpPacket)
+{
+	CCoder coder;
+	char   cIndex;
+	char   cWeapon;
+
+	coder.SetBuf(cpPacket);
+	coder.GetChar(&cIndex);
+	coder.GetChar(&cWeapon);
+
+	char szPacket[MIN_STR];
+	int iPacketSize;
+
+	coder.SetBuf(szPacket);
+	coder.PutChar(cIndex);
+	coder.PutChar(cWeapon);
+#ifdef _INGAME_MSG_CHECK_
+	printf("OnRequestChangeWeapon  Index %d WeaponType : %d\n" , (int)cIndex , (int)cWeapon);
+#endif
+	iPacketSize = coder.SetHeader(NOTIFY_CHANGEWEAPON);
+	PostTcpSend(g_Server.iUserBegin, szPacket, iPacketSize);
+
 	return 0;
 }
 
