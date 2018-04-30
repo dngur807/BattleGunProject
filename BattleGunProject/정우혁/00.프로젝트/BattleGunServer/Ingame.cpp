@@ -20,7 +20,7 @@ int InitIngame()
 	g_OnTransFunc[REQUEST_DEAD].proc = OnRequestDead;
 	g_OnTransFunc[REQUEST_REVIVE].proc = OnRequestRevive; 
 	g_OnTransFunc[REQUEST_CHANGEWEAPON].proc = OnRequestChangeWeapon;
-
+	g_OnTransFunc[REQUEST_HOLDSTATE].proc = OnRequestHoldState;
 
 	return 0;
 }
@@ -97,6 +97,27 @@ void CIngame::GameEnd()
 }
 
 
+
+int OnRequestHoldState(LPCLIENTCONTEXT lpSocketContext, char* cpPacket)
+{
+	CCoder coder;
+	char   cIndex;
+	char   cState;
+	char   cPacket[MIN_STR];
+	int    iPacketSize;
+
+	coder.SetBuf(cpPacket);
+	coder.GetChar(&cIndex);
+	coder.GetChar(&cState);
+
+
+	coder.SetBuf(cPacket);
+	coder.PutChar(cIndex);
+	coder.PutChar(cState);
+	iPacketSize = coder.SetHeader(NOTIFY_HOLDSTATE);
+	PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
+	return 0;
+}
 
 void CIngame::NotifyGameResult()
 {
