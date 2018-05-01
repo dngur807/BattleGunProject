@@ -61,6 +61,11 @@ enum eProtocolType
 					 REQUEST_HOLDSTATE,
 					 NOTIFY_HOLDSTATE,
 
+					 REQUEST_FIREWEAPON,
+					 NOTIFY_FIREWEAPON,
+
+
+
 };
 
 enum

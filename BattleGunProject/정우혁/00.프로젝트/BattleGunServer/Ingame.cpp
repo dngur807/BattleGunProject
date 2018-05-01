@@ -21,7 +21,7 @@ int InitIngame()
 	g_OnTransFunc[REQUEST_REVIVE].proc = OnRequestRevive; 
 	g_OnTransFunc[REQUEST_CHANGEWEAPON].proc = OnRequestChangeWeapon;
 	g_OnTransFunc[REQUEST_HOLDSTATE].proc = OnRequestHoldState;
-
+	g_OnTransFunc[REQUEST_FIREWEAPON].proc = OnRequestFireWeapon;
 	return 0;
 }
 void CIngame::Initialize()
@@ -116,6 +116,32 @@ int OnRequestHoldState(LPCLIENTCONTEXT lpSocketContext, char* cpPacket)
 	coder.PutChar(cState);
 	iPacketSize = coder.SetHeader(NOTIFY_HOLDSTATE);
 	PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
+	return 0;
+}
+int OnRequestFireWeapon(LPCLIENTCONTEXT lpSocketContext, char* cpPacket)
+{
+	CCoder		 coder;
+	char		cIndex;
+	char		cType;
+	XMFLOAT3	vPos;
+	XMFLOAT3	vDir;
+	char   cPacket[MIN_STR];
+	int    iPacketSize;
+
+	coder.SetBuf(cpPacket);
+	coder.GetChar(&cIndex);
+	coder.GetChar(&cType);
+	coder.GetXMFLOAT3(&vPos);
+	coder.GetXMFLOAT3(&vDir);
+
+	coder.SetBuf(cPacket);
+	coder.PutChar(cIndex);
+	coder.PutChar(cType);
+	coder.PutXMFLOAT3(&vPos);
+	coder.PutXMFLOAT3(&vDir);
+	iPacketSize = coder.SetHeader(NOTIFY_FIREWEAPON);
+	PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
+
 	return 0;
 }
 
