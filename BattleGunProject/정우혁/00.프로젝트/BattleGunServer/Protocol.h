@@ -64,7 +64,9 @@ enum eProtocolType
 					 REQUEST_FIREWEAPON,
 					 NOTIFY_FIREWEAPON,
 
-
+					 REQUEST_NEXT_NAVIMESH,
+					 NOTIFY_NEXT_NAVIMESH,
+					 NOTIFY_GAME_START , 
 
 };
 

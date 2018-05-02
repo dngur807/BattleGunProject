@@ -22,10 +22,16 @@ int InitIngame()
 	g_OnTransFunc[REQUEST_CHANGEWEAPON].proc = OnRequestChangeWeapon;
 	g_OnTransFunc[REQUEST_HOLDSTATE].proc = OnRequestHoldState;
 	g_OnTransFunc[REQUEST_FIREWEAPON].proc = OnRequestFireWeapon;
+	g_OnTransFunc[REQUEST_NEXT_NAVIMESH].proc = OnRequestNextNavi;
+
 	return 0;
 }
 void CIngame::Initialize()
 {
+	m_IsGameStart = false;
+	m_iLoadingEnd = 0;
+	m_eGameServ = SERVSTATE_END;
+
 	switch (g_Server.m_eMapType)
 	{
 	case MAP_GESTALT:
@@ -41,19 +47,34 @@ void CIngame::Initialize()
 
 }
 
-int CIngame::Update()
+int CIngame::Update()//메인스레드에서 호출
 {
+	
+	if (m_eGameServ == SERVSTATE_LOBBY && 
+		m_IsGameStart == false &&
+		m_iLoadingEnd >= g_Server.iCurUserNum)
+	{
+		m_IsGameStart = true;
+		//게임 시작 알리자
+		NotifyGameStart();
+	}
+
+
 	if (m_eGameServ != SERVSTATE_INGAME_PLAYING
 		&& m_eGameServ != SERVSTATE_GAMEEND)
-		return 0 ;
+		return 0;
 
-	if (m_eGameServ != SERVSTATE_GAMEEND)
+	
+
+	if (m_IsGameStart == true && m_eGameServ != SERVSTATE_GAMEEND)
 	{
 		if (m_dwTime + 1000 < GetTickCount())// 1초에 한번
 		{
 			m_dwTime = GetTickCount();
 			m_fGameTime--;
-			NotifyGameTimer(m_fGameTime);
+			printf("Time : %d\n", (int)m_fGameTime);
+
+			NotifyGameTimer((int)m_fGameTime);
 		}
 		if (m_fGameTime < 0.0f)
 		{
@@ -83,10 +104,14 @@ int CIngame::Update()
 void CIngame::GameStart()
 {
 	Initialize();
+
+
 	//게임 프로세스 쓰레드 생성
 	m_fGameTime = 60;
 	m_dwTime = 0;
 	m_eGameServ = SERVSTATE_INGAME_PLAYING;
+	m_iLoadingEnd = 0;
+	m_IsGameStart = true;
 
 }
 
@@ -97,6 +122,13 @@ void CIngame::GameEnd()
 }
 
 
+
+void CIngame::InLobby()
+{
+	m_IsGameStart = false;
+
+	m_eGameServ = SERVSTATE_LOBBY;
+}
 
 int OnRequestHoldState(LPCLIENTCONTEXT lpSocketContext, char* cpPacket)
 {
@@ -144,7 +176,38 @@ int OnRequestFireWeapon(LPCLIENTCONTEXT lpSocketContext, char* cpPacket)
 
 	return 0;
 }
+int OnRequestNextNavi(LPCLIENTCONTEXT lpSocketContext, char* cpPacket)
+{
+	CCoder		 coder;
+	char		cIndex;
+	char   cPacket[MIN_STR];
+	int    iPacketSize;
+	coder.SetBuf(cpPacket);
+	coder.GetChar(&cIndex);
 
+	
+	
+
+#ifdef _FROM_CLIENT_
+	printf("OnRequestNextNavi Index : %d\n", (int)cIndex);
+#endif // _FROM_CLIENT_
+
+	EnterCriticalSection(&g_Server.CS);
+	++g_Server.pIngame->m_iLoadingEnd;
+	g_Server.pIngame->InLobby();
+	LeaveCriticalSection(&g_Server.CS);
+	int iNext = g_Server.pn[cIndex].next;
+
+	coder.SetBuf(cPacket);
+	coder.PutChar(iNext);//다음 사람한테 전달
+	iPacketSize = coder.SetHeader(NOTIFY_NEXT_NAVIMESH);
+	if (iNext != NOTLINKED)
+	{	
+		LPCLIENTCONTEXT lpSockContext = &g_Server.sc[iNext];
+		PostTcpSend(1 , (int*)&lpSockContext, cPacket, iPacketSize);
+	}
+	return 0;
+}
 void CIngame::NotifyGameResult()
 {
 	CCoder coder;
@@ -173,6 +236,21 @@ void CIngame::NotifyGameTimer(int iTimer)
 	iPacketSize = coder.SetHeader(NOTIFY_GAMETIMER);
 	PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
 }
+
+void CIngame::NotifyGameStart()
+{
+#ifdef _TO_CLIENT_
+		printf("NotifyGameStart \n");
+#endif
+
+	CCoder coder;
+	char cPacket[MIN_STR];
+	int iPacketSize;
+	coder.SetBuf(cPacket);
+	iPacketSize = coder.SetHeader(NOTIFY_GAME_START);
+	PostTcpSend(g_Server.iUserBegin, cPacket, iPacketSize);
+}
+
 void CIngame::NotifyGoLobby(void)
 {
 

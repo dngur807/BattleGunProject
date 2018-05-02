@@ -27,6 +27,7 @@ void CLooby::Initialize()
 }
 int OnRequestNaviMesh(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 {
+	EnterCriticalSection(&g_Server.CS);
 	if (g_Server.pLobby->m_IsReadNaviMesh)
 	{
 #ifdef _FROM_CLIENT_
@@ -34,8 +35,9 @@ int OnRequestNaviMesh(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 #endif
 		return 0;
 	}
-
 	g_Server.pLobby->m_IsReadNaviMesh = true;
+	LeaveCriticalSection(&g_Server.CS);
+
 	DWORD dwByte = 0;
 	//여기서 읽고 데이터 전달하자
 	HANDLE hFile;
@@ -63,9 +65,7 @@ int OnRequestNaviMesh(LPCLIENTCONTEXT lpSockContext, char *cpPacket)
 		coder.SetBuf(cPacket);
 		coder.PutNaviMesh(navi);
 		iPacketSize = coder.SetHeader(NOTIFY_NAVIMESH);
-		cout << ++i << "네비 정보 전달" << endl;// 이거 빼면 뻑나네 ... 뭐지
-
-
+		//cout << ++i << "네비 정보 전달" << endl;// 이거 빼면 뻑나네 ... 뭐지
 //#ifdef _FROM_CLIENT_
 //		cout << ++i << "네비 정보 전달" << endl;
 //#endif
