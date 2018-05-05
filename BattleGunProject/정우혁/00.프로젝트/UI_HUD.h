@@ -30,6 +30,8 @@ private:
 	void RenderText();
 	void RenderResult();
 	void RenderNameTag();
+	void RenderWeaponUI();
+	void RenderHpShildTime();
 	void MakeNameTag();
 public:
 	static CUI_Hud* Create(Engine::MYGDI* pMyGDI);
@@ -47,10 +49,19 @@ private:
 
 
 
+	Engine::CTexture*		m_pWeaponUIDefaultTex;
+	Engine::CTexture*		m_pWeaponUIGetTex;
+	Engine::CTexture*		m_pWeaponUIUseTex;
+	Engine::CTexture*		m_pHpShieldTimeTex;
+
+
 	CMyCharacter*			m_pMyCharacter;
 
 	CText*					m_pIDText;
 	CText*					m_pHPText;
+	CText*					m_pBulletText;
+	CText*					m_pTimerText;
+
 	TCHAR					m_szIDText[MAX_STR];
 	TCHAR					m_szHPText[MAX_STR];
 private:
